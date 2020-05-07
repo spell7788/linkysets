@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
-
+import sys
 from pathlib import Path
 
 from environs import Env
@@ -17,6 +17,10 @@ from environs import Env
 env = Env()
 
 BASE_DIR = Path(__file__).resolve().parents[2]
+
+POLEMICFLOW_DIR = BASE_DIR / "polemicflow"
+
+sys.path.append(str(POLEMICFLOW_DIR))
 
 SECRET_KEY = env.str("SECRET_KEY")
 
@@ -31,8 +35,8 @@ INSTALLED_APPS = [
 ]
 
 PROJECT_APPS = [
-    "polemicflow.users.apps.UsersConfig",
-    "polemicflow.entries.apps.EntriesConfig",
+    "users.apps.UsersConfig",
+    "entries.apps.EntriesConfig",
 ]
 
 INSTALLED_APPS += PROJECT_APPS
@@ -52,7 +56,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "polemicflow" / "templates"],
+        "DIRS": [POLEMICFLOW_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
