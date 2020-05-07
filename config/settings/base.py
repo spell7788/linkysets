@@ -30,7 +30,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-PROJECT_APPS = ["polemicflow.entries.apps.EntriesConfig"]
+PROJECT_APPS = [
+    "polemicflow.users.apps.UsersConfig",
+    "polemicflow.entries.apps.EntriesConfig",
+]
 
 INSTALLED_APPS += PROJECT_APPS
 
@@ -65,6 +68,8 @@ TEMPLATES = [
 DATABASES = {"default": env.dj_db_url("DATABASE_URL")}
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+AUTH_USER_MODEL = "users.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

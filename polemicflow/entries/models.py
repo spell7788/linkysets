@@ -1,8 +1,23 @@
+from typing import Union
+
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from polemicflow.users.models import User
+
 
 class Entry(models.Model):
+    _author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="author",
+        verbose_name=_("author"),
+        help_text=_("The user who posted entry."),
+    )
     url = models.URLField(
         _("URL"),
         max_length=400,
@@ -22,3 +37,7 @@ class Entry(models.Model):
     class Meta:
         verbose_name = _("entry")
         verbose_name_plural = _("entries")
+
+    @property
+    def author(self) -> Union[User, AnonymousUser]:
+        return self._author or AnonymousUser()
