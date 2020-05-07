@@ -1,0 +1,32 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+mypy = "*"
+django-stubs = "*"
+django-debug-toolbar = "*"
+black = "*"
+flake8 = "*"
+flake8-logging-format = "*"
+flake8-comprehensions = "*"
+flake8-mutable = "*"
+flake8-debugger = "*"
+flake8-django = "*"
+flake8-eradicate = "*"
+flake8-isort = "*"
+
+[packages]
+django = "*"
+psycopg2-binary = "*"
+environs = {extras = ["django"],version = "*"}
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+test = "docker-compose run web python manage.py test --settings=config.settings.testing"

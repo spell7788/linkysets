@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  web:
+    build: .
+    env_file: ./envs/production/web.env
+    depends_on:
+     - db
+
+  db:
+    image: postgres:12-alpine
+    env_file: ./envs/production/db.env
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+
+volumes:
+  db_data:

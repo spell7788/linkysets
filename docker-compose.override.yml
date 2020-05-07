@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  web:
+    build:
+      dockerfile: ./Dockerfile.dev
+    env_file: ./envs/local/web.env
+    volumes:
+      - ".:/app"
+    ports:
+      - "8000:8000"
+
+  db:
+    env_file: ./envs/local/db.env
