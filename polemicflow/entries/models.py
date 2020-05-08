@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from polemicflow.users.models import User
 
 
-class Entry(models.Model):
+class AbstractBaseEntry(models.Model):
     _author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -18,6 +18,22 @@ class Entry(models.Model):
         verbose_name=_("author"),
         help_text=_("The user who posted entry."),
     )
+    timestamp = models.DateTimeField(
+        _("timestamp"),
+        auto_now_add=True,
+        editable=False,
+        help_text=_("Date and time of entry creation."),
+    )
+
+    class Meta:
+        abstract = True
+
+    @property
+    def author(self) -> Union[User, AnonymousUser]:
+        return self._author or AnonymousUser()
+
+
+class Entry(AbstractBaseEntry):
     url = models.URLField(
         _("URL"),
         max_length=400,
@@ -37,7 +53,3 @@ class Entry(models.Model):
     class Meta:
         verbose_name = _("entry")
         verbose_name_plural = _("entries")
-
-    @property
-    def author(self) -> Union[User, AnonymousUser]:
-        return self._author or AnonymousUser()
