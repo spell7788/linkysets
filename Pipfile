@@ -16,6 +16,7 @@ flake8-debugger = "*"
 flake8-django = "*"
 flake8-eradicate = "*"
 flake8-isort = "*"
+model-bakery = "*"
 
 [packages]
 django = "*"

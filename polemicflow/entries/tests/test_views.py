@@ -2,13 +2,14 @@ from django.shortcuts import reverse
 from django.test import TestCase
 
 from .. import views
-from ..models import Entry
+from .bakery_recipes import entry_recipe
 
 
 class EntryListViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.entry = Entry.objects.create(url="https://example.com")
+        cls.entries = entry_recipe.make(_quantity=3)
+        cls.entry, *_ = cls.entries
 
     def test_correctly_resolves_view(self):
         response = self.client.get("/")
