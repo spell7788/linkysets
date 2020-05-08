@@ -30,4 +30,4 @@ python_version = "3.8"
 allow_prereleases = true
 
 [scripts]
-test = "docker-compose run web python manage.py test --settings=config.settings.testing"
+test = "docker-compose run --rm web python manage.py test --settings=config.settings.testing"
