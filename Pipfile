@@ -22,6 +22,7 @@ model-bakery = "*"
 django = "*"
 psycopg2-binary = "*"
 environs = {extras = ["django"],version = "*"}
+django-mptt = "*"
 
 [requires]
 python_version = "3.8"

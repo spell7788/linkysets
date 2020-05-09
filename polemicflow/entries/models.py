@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from mptt.models import MPTTModel, TreeForeignKey
 
 from polemicflow.users.models import User
 
@@ -53,3 +54,33 @@ class Entry(AbstractBaseEntry):
     class Meta:
         verbose_name = _("entry")
         verbose_name_plural = _("entries")
+
+
+class Reply(AbstractBaseEntry, MPTTModel):
+    entry = models.ForeignKey(
+        Entry,
+        on_delete=models.CASCADE,
+        related_name="replies",
+        verbose_name=_("related entry"),
+        help_text=_("Entry to which reply is attached."),
+    )
+    parent = TreeForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="children",
+        verbose_name=_("parent reply"),
+        help_text=_("Parent reply if it's not entry reply."),
+    )
+    text = models.CharField(_("text"), max_length=200, help_text=_("Reply text."))
+
+    class Meta:
+        verbose_name = _("reply")
+        verbose_name_plural = _("replies")
+
+    class MPTTMeta:
+        order_insertion_by = ["timestamp"]
+
+    def __str__(self) -> str:
+        return self.text
