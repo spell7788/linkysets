@@ -18,6 +18,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("", include("polemicflow.entries.urls", namespace="entries")),
+    path("users/", include("polemicflow.users.urls", namespace="users")),
 ]
 
 if settings.DEBUG:

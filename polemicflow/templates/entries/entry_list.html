@@ -1,6 +1,28 @@
 {% extends 'base.html' %}
 
 {% block content %}
+  {% if user.is_authenticated %}
+    You are logged in as <strong>{{ user.username }}</strong>
+
+    <a href="{% url 'users:logout' %}">
+      Logout
+    </a>
+  {% else %}
+    <form action="{% url 'users:login' %}" method="post">
+      {% csrf_token %}
+      {{ login_form.as_p }}
+      <button type="submit">
+        Login
+      </button>
+    </form>
+
+    <a href="{% url 'users:register' %}">
+      Register
+    </a>
+  {% endif %}
+
+  <hr>
+
   {% for entry in entry_list %}
     {{ entry }}
   {% endfor %}
