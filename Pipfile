@@ -24,6 +24,7 @@ django = "*"
 psycopg2-binary = "*"
 environs = {extras = ["django"],version = "*"}
 django-mptt = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
