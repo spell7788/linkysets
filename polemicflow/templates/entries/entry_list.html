@@ -23,7 +23,19 @@
 
   <hr>
 
+  <form action="{% url 'entries:add' %}" method="post">
+    {% csrf_token %}
+    {{ entry_form.as_p }}
+    <button type="submit">
+      Create
+    </button>
+  </form>
+
+  <hr>
+
+  <ul>
   {% for entry in entry_list %}
-    {{ entry }}
+    <li>{{ entry.author }} - {{ entry.url }}</li>
   {% endfor %}
+  </ul>
 {% endblock content %}

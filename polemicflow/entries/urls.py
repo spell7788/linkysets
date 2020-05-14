@@ -1,9 +1,10 @@
 from django.urls import path
 
-from .views import EntryListView
+from . import views
 
 app_name = "entries"
 
 urlpatterns = [
-    path("", EntryListView.as_view(), name="list")
+    path("", views.EntryListView.as_view(), name="list"),
+    path("add/", views.AddEntryView.as_view(), name="add"),
 ]
