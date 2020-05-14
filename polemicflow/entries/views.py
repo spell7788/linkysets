@@ -1,5 +1,5 @@
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 
 from .forms import EntryForm
 from .models import Entry
@@ -28,3 +28,8 @@ class AddEntryView(CreateView):
             kwargs["user"] = user
 
         return kwargs
+
+
+class EntryDetailView(DetailView):
+    model = Entry
+    template_name = "entries/entry_detail.html"

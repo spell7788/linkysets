@@ -87,3 +87,23 @@ class AddEntryViewTests(TestCase):
     def test_redirects_to_home_on_success(self, clean_url_mock):
         response = self.client.post(reverse("entries:add"), self.form_data)
         self.assertRedirects(response, reverse("entries:list"))
+
+
+class EntryDetailViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.entry = entry_recipe.make()
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(reverse("entries:detail", args=(self.entry.pk,)))
+        self.assertEqual(
+            response.resolver_match.func.__name__, views.EntryDetailView.as_view().__name__
+        )
+
+    def test_returns_correct_status_code(self):
+        response = self.client.get(reverse("entries:detail", args=(self.entry.pk,)))
+        self.assertEqual(response.status_code, 200)
+
+    def test_uses_correct_template(self):
+        response = self.client.get(reverse("entries:detail", args=(self.entry.pk,)))
+        self.assertTemplateUsed(response, "entries/entry_detail.html")

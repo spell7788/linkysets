@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+  {% if entry.image_url %}
+    <img src="{{ entry.image_url }}">
+  {% endif %}
+
+  <div>{{ entry.url }}</div>
+
+  <div>
+    <span>{{ entry.author }}</span>
+    <span>{{ entry.timestamp }}</span>
+  </div>
+</div>
+{% endblock content %}

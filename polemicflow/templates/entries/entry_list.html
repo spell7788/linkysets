@@ -35,7 +35,12 @@
 
   <ul>
   {% for entry in entry_list %}
-    <li>{{ entry.author }} - {{ entry.url }}</li>
+    <li>
+      {{ entry.author }}
+      <a href="{% url 'entries:detail' entry.pk %}">
+        {{ entry }}
+      </a>
+    </li>
   {% endfor %}
   </ul>
 {% endblock content %}
