@@ -3,6 +3,7 @@ from typing import Union
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
+from django.shortcuts import reverse  # type: ignore
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -48,12 +49,15 @@ class Entry(AbstractBaseEntry):
         help_text=_("The image of the resource."),
     )
 
-    def __str__(self) -> str:
-        return self.url
-
     class Meta:
         verbose_name = _("entry")
         verbose_name_plural = _("entries")
+
+    def __str__(self) -> str:
+        return self.url
+
+    def get_absolute_url(self):
+        return reverse("entries:detail", args=(self.pk,))
 
 
 class Reply(AbstractBaseEntry, MPTTModel):

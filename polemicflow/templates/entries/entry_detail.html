@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load mptt_tags %}
 
 {% block content %}
 <div>
@@ -12,5 +13,29 @@
     <span>{{ entry.author }}</span>
     <span>{{ entry.timestamp }}</span>
   </div>
+
+  <div>
+    {% recursetree entry.replies.all %}
+      <div>
+        <div>
+          <span>[reply to {% if node.parent %}{{ node.parent }}{% endif %}]</span>
+          <span>{{ node.author }}</span>
+          <span>{{ node.timestamp }}</span>
+        </div>
+
+        {{ node.text }}
+      </div>
+
+      {{ children }}
+    {% endrecursetree %}
+  </div>
+
+  <form action="{{ entry.get_absolute_url }}" method="post" novalidate>
+    {% csrf_token %}
+    {{ reply_form.as_p }}
+    <button type="submit">
+      Send
+    </button>
+  </form>
 </div>
 {% endblock content %}

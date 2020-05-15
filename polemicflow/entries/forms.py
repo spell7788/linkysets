@@ -8,17 +8,13 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Entry
+from .models import Entry, Reply
 
 if TYPE_CHECKING:
     from polemicflow.users.models import User
 
 
-class EntryForm(forms.ModelForm):
-    class Meta:
-        model = Entry
-        fields = ["url"]
-
+class BaseEntryForm(forms.ModelForm):
     def __init__(self, user: Optional[User] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
@@ -27,6 +23,12 @@ class EntryForm(forms.ModelForm):
         if self.user is not None:
             self.instance._author = self.user
         return super().save(commit)
+
+
+class EntryForm(BaseEntryForm):
+    class Meta:
+        model = Entry
+        fields = ["url"]
 
     def clean_url(self):
         url = self.cleaned_data["url"]
@@ -44,3 +46,20 @@ class EntryForm(forms.ModelForm):
             )
 
         return response.url
+
+
+class ReplyForm(BaseEntryForm):
+    class Meta:
+        model = Reply
+        fields = ["parent", "text"]
+
+    def __init__(self, entry: Optional[Entry] = None, *args, **kwargs):
+        if entry is None:
+            raise ValueError("Entry parameter must be specified.")
+
+        self.entry = entry
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit: bool = True):
+        self.instance.entry = self.entry
+        return super().save(commit=commit)
