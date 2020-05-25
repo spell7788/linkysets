@@ -1,22 +1,25 @@
-from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from .bakery_recipes import anonymous_entry_recipe, entry_recipe
+from .bakery_recipes import entryset_recipe
 
 
-class EntriesTests(TestCase):
+class EntrySetTests(TestCase):
     def setUp(self):
-        self.entry = entry_recipe.make()
-        self.entry_author = self.entry.author
-        self.anonymous_entry = anonymous_entry_recipe.make()
+        self.entryset = entryset_recipe.make(_fill_optional=True)
 
-    def test_entry_has_existing_author(self):
-        self.assertNotIsInstance(self.entry.author, AnonymousUser)
+    def test_str_returns_set_name_if_name_is_presented(self):
+        self.assertEqual(str(self.entryset), self.entryset.name)
 
-    def test_anonymous_entry_has_anonymous_author(self):
-        self.assertIsInstance(self.anonymous_entry.author, AnonymousUser)
+    def test_clean_raises_validation_error_when_no_entries(self):
+        self.entryset.entries.clear()
+        with self.assertRaises(ValidationError):
+            self.entryset.clean()
 
-    def test_author_becomes_anonymous_after_user_deletion(self):
-        self.entry_author.delete()
-        self.entry.refresh_from_db(fields=["_author"])
-        self.assertIsInstance(self.entry.author, AnonymousUser)
+    def test_gets_correct_author(self):
+        self.assertEqual(self.entryset.get_author().pk, self.entryset.author.pk)
+
+    def test_gets_anonymous_author(self):
+        self.entryset.author = None
+        self.entryset.save()
+        self.assertIsNone(self.entryset.get_author().pk)

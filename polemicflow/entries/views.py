@@ -1,49 +1,73 @@
+import logging
+from typing import Any, List
+
+from django.contrib import messages
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import Http404, redirect, render  # type: ignore
-from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
 
-from .forms import EntryForm, ReplyForm
-from .models import Entry
+from .forms import EntryInlineFormset, EntrySetForm
+from .models import Entry, EntrySet
 
-
-class EntryListView(ListView):
-    model = Entry
-    template_name = "entries/entry_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["entry_form"] = EntryForm()
-        return context
+logger = logging.getLogger(__name__)
 
 
-class AddEntryView(CreateView):
-    form_class = EntryForm
-    template_name = "entries/add_entry.html"
-    success_url = reverse_lazy("entries:list")
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        user = self.request.user
-        # AnonymousUser's pk is None
-        if user.pk is not None:
-            kwargs["user"] = user
-
-        return kwargs
+class HomeView(ListView):
+    model = EntrySet
+    template_name = "entries/home.html"
 
 
-def entry_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
-    try:
-        entry = Entry.objects.filter(pk=pk).prefetch_related("replies").get()
-    except Entry.DoesNotExist:
-        params = {"pk": pk}
-        raise Http404(f"Entry doesn't exist. Passed parameters: {params}")
-
+def create_entryset_view(request: HttpRequest) -> HttpResponse:
     user = request.user if request.user.is_authenticated else None
-    form = ReplyForm(entry=entry, user=user, data=request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect(entry)
+    form = EntrySetForm(request.POST or None, user=user)
+    formset = EntryInlineFormset(request.POST or None)
 
-    context = {"entry": entry, "reply_form": form}
-    return render(request, "entries/entry_detail.html", context)
+    if request.method == "POST":
+        if formset.has_changed() and form.is_valid() and formset.is_valid():  # type: ignore
+            with transaction.atomic():
+                entryset = form.save()
+                uncommited_entries = formset.save(commit=False)
+
+                entries: List[Entry] = []
+                for entry in uncommited_entries:
+                    entry.origin = entryset
+                    entry.save()
+                    entries.append(entry)
+                entryset.entries.add(*entries)
+
+            logger.debug(
+                'Entryset has been created: "%s". Entries: %s',
+                entryset,
+                ", ".join(map(str, entries)),
+            )
+            messages.success(request, _("Entries set has been successfully created."))
+            return redirect("entries:home")
+
+    context = {"form": form, "formset": formset}
+    return render(request, "entries/entryset_form.html", context)
+
+
+def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
+    entryset = get_object_or_404(EntrySet, pk=pk)
+    form = EntrySetForm(request.POST or None, instance=entryset)
+    formset = EntryInlineFormset(request.POST or None, instance=entryset, is_update=True)
+
+    if request.method == "POST":
+        updated = False
+        if form.has_changed() and form.is_valid():
+            entryset = form.save()
+            updated = True
+
+        if formset.has_changed() and formset.is_valid():  # type: ignore
+            entries = formset.save()
+            entryset.entries.add(*entries)
+            updated = True
+
+        if updated:
+            messages.success(request, _("Entries set has been successfully updated."))
+        return redirect("entries:home")
+
+    context = {"form": form, "formset": formset}
+    return render(request, "entries/entryset_form.html", context)

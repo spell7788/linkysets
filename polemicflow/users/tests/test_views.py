@@ -56,4 +56,4 @@ class RegisterViewTests(TestCase):
 
     def test_redirects_to_home_page_after_registration(self):
         response = self.client.post(reverse("users:register"), self.data, follow=True)
-        self.assertRedirects(response, reverse("entries:list"))
+        self.assertRedirects(response, reverse("entries:home"))

@@ -30,12 +30,13 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
-    # "django.contrib.messages",
+    "django.contrib.messages",
     "django.contrib.staticfiles",
     "mptt",
 ]
 
 PROJECT_APPS = [
+    "common.apps.CommonConfig",
     "users.apps.UsersConfig",
     "entries.apps.EntriesConfig",
 ]
@@ -48,7 +49,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # "django.contrib.messages.middleware.MessageMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -101,5 +102,23 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
+
+# fmt: off
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "polemicflow": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+    },
+}
+# fmt: on
 
 DEFAULT_REQUESTS_TIMEOUT = 1.5

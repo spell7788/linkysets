@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+  {{ block.super }}
+
   {% if user.is_authenticated %}
     You are logged in as <strong>{{ user.username }}</strong>
 
@@ -21,7 +23,7 @@
     </a>
   {% endif %}
 
-  <hr>
+  {% comment %} <hr>
 
   <form action="{% url 'entries:add' %}" method="post">
     {% csrf_token %}
@@ -29,17 +31,14 @@
     <button type="submit">
       Create
     </button>
-  </form>
+  </form> {% endcomment %}
 
   <hr>
 
   <ul>
-  {% for entry in entry_list %}
+  {% for set in entryset_list %}
     <li>
-      {{ entry.author }}
-      <a href="{% url 'entries:detail' entry.pk %}">
-        {{ entry }}
-      </a>
+      {{ set.pk }} {{ set }}
     </li>
   {% endfor %}
   </ul>

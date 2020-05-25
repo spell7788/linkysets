@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 from ..forms import EntryForm
 
-successful_clean_url_patch = patch.object(
+passing_clean_url_patch = patch.object(
     EntryForm,
     "clean_url",
     side_effect=lambda self: self.cleaned_data["url"],

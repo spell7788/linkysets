@@ -1,37 +1,42 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+import logging
+from typing import Optional
 
 import requests
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Entry, Reply
+from polemicflow.common.forms import AssignUserMixin
 
-if TYPE_CHECKING:
-    from polemicflow.users.models import User
+from .models import Entry, EntrySet, Reply
 
-
-class BaseEntryForm(forms.ModelForm):
-    def __init__(self, user: Optional[User] = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-
-    def save(self, commit: bool = True):
-        if self.user is not None:
-            self.instance._author = self.user
-        return super().save(commit)
+logger = logging.getLogger(__name__)
 
 
-class EntryForm(BaseEntryForm):
+class EntrySetForm(AssignUserMixin[EntrySet], forms.ModelForm):
+    user_field_name = "author"
+
+    class Meta:
+        model = EntrySet
+        fields = ["name"]
+
+
+class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ["url"]
+        fields = ["type", "url", "label"]
 
     def clean_url(self):
         url = self.cleaned_data["url"]
+
+        if url == self.instance.url:
+            logger.debug("Skiped entry url clean, because url didn't change")
+            return url
+
         try:
             with requests.Session() as session:
                 session.max_redirects = 2
@@ -48,18 +53,38 @@ class EntryForm(BaseEntryForm):
         return response.url
 
 
-class ReplyForm(BaseEntryForm):
+class EntryInlineFormsetBase(BaseInlineFormSet):
+    def __init__(self, *args, is_update: bool = False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.can_delete = is_update
+
+
+EntryInlineFormset = inlineformset_factory(
+    EntrySet,
+    Entry,
+    form=EntryForm,
+    formset=EntryInlineFormsetBase,
+    min_num=1,
+    validate_min=True,
+    extra=0,
+    can_delete=False,
+)
+
+
+class ReplyForm(AssignUserMixin[Reply], forms.ModelForm):
+    user_field_name = "author"
+
     class Meta:
         model = Reply
         fields = ["parent", "text"]
 
-    def __init__(self, entry: Optional[Entry] = None, *args, **kwargs):
-        if entry is None:
-            raise ValueError("Entry parameter must be specified.")
+    def __init__(self, *args, entryset: Optional[EntrySet] = None, **kwargs):
+        if entryset is None:
+            raise ValueError("Entry set must be specified.")
 
-        self.entry = entry
+        self.entryset = entryset
         super().__init__(*args, **kwargs)
 
-    def save(self, commit: bool = True):
-        self.instance.entry = self.entry
+    def save(self, commit: bool = True) -> Reply:
+        self.instance.set = self.entryset
         return super().save(commit=commit)

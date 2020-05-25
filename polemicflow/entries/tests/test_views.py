@@ -1,150 +1,107 @@
 from django.shortcuts import reverse
 from django.test import TestCase
+from django.utils import translation
 from faker import Faker
 
 from polemicflow.users.tests.bakery_recipes import user_recipe
 
 from .. import views
-from ..models import Entry, Reply
-from .bakery_recipes import entry_recipe, reply_recipe
-from .common import successful_clean_url_patch
+from ..models import Entry, EntrySet
+from .bakery_recipes import entryset_recipe
+from .common import passing_clean_url_patch
 
 fake = Faker()
 
 
-class EntryListViewTests(TestCase):
+class HomeTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.entries = entry_recipe.make(_quantity=3)
-        cls.entry, *_ = cls.entries
+        cls.entryset_list = entryset_recipe.make(_quantity=2, _fill_optional=True)
+        cls.entryset, *_ = cls.entryset_list
 
     def test_correctly_resolves_view(self):
         response = self.client.get("/")
         self.assertEqual(
-            response.resolver_match.func.__name__, views.EntryListView.as_view().__name__
+            response.resolver_match.func.__name__, views.HomeView.as_view().__name__
         )
 
     def test_returns_correct_status_code(self):
-        response = self.client.get(reverse("entries:list"))
+        response = self.client.get(reverse("entries:home"))
         self.assertEqual(response.status_code, 200)
 
     def test_uses_correct_template(self):
-        response = self.client.get(reverse("entries:list"))
-        self.assertTemplateUsed(response, "entries/entry_list.html")
+        response = self.client.get(reverse("entries:home"))
+        self.assertTemplateUsed(response, "entries/home.html")
 
     def test_response_contains_entry_string(self):
-        response = self.client.get(reverse("entries:list"))
-        self.assertContains(response, str(self.entry))
+        response = self.client.get(reverse("entries:home"))
+        self.assertContains(response, str(self.entryset))
 
 
-class AddEntryViewTests(TestCase):
+class CreateEntrySetTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = user_recipe.make()
 
     def setUp(self):
-        self.entry_url = fake.url()
-        self.form_data = {"url": self.entry_url}
+        self.client.force_login(self.user)
+        self.entryset_name = fake.pystr()
+        self.valid_data = {
+            "name": self.entryset_name,
+            # management form data
+            "original_entries-TOTAL_FORMS": "1",
+            "original_entries-INITIAL_FORMS": "0",
+            # ---
+            "original_entries-0-type": fake.random_element(Entry.EntryType.values),
+            "original_entries-0-url": fake.url(),
+            "original_entries-0-label": fake.pystr(),
+        }
 
     def test_correctly_resolves_view(self):
-        response = self.client.get(reverse("entries:add"))
+        response = self.client.get(reverse("entries:create"))
         self.assertEqual(
-            response.resolver_match.func.__name__, views.AddEntryView.as_view().__name__
+            response.resolver_match.func.__name__, views.create_entryset_view.__name__
         )
 
     def test_returns_correct_status_code(self):
-        response = self.client.get(reverse("entries:add"))
+        response = self.client.get(reverse("entries:create"))
         self.assertEqual(response.status_code, 200)
 
     def test_uses_correct_template(self):
-        response = self.client.get(reverse("entries:add"))
-        self.assertTemplateUsed(response, "entries/add_entry.html")
+        response = self.client.get(reverse("entries:create"))
+        self.assertTemplateUsed(response, "entries/entryset_form.html")
 
-    @successful_clean_url_patch
-    def test_adds_new_anonymous_entry(self, clean_url_mock):
-        self.client.post(reverse("entries:add"), self.form_data)
-        try:
-            entry = Entry.objects.get(url=self.entry_url)
-        except Entry.DoesNotExist:
-            self.fail(f"Entry wasn't added using data: {self.form_data}")
+    @passing_clean_url_patch
+    def test_successfully_creates_entryset(self, clean_url_mock):
+        self.client.post(reverse("entries:create"), self.valid_data)
+        EntrySet.objects.get(name=self.entryset_name)
 
-        self.assertIsNone(entry._author)
+    @passing_clean_url_patch
+    def test_redirects_after_entryset_created(self, clean_url_mock):
+        response = self.client.post(reverse("entries:create"), self.valid_data)
+        self.assertRedirects(response, reverse("entries:home"))
 
-    @successful_clean_url_patch
-    def test_adds_new_authored_entry(self, clean_url_mock):
-        self.client.force_login(self.user)
-        self.client.post(reverse("entries:add"), self.form_data)
-        try:
-            entry = Entry.objects.get(url=self.entry_url)
-        except Entry.DoesNotExist:
-            self.fail(
-                f'Entry wasn\'t added by user "{self.user}" using data: {self.form_data}'
-            )
+    @passing_clean_url_patch
+    def test_creates_entryset_without_optional_name(self, clean_url_mock):
+        self.valid_data["name"] = ""
+        self.client.post(reverse("entries:create"), self.valid_data)
+        entryset = EntrySet.objects.latest("created")
+        self.assertEqual(entryset.name, "")
 
-        self.assertEqual(entry._author, self.user)
+    def test_contains_field_is_required_error(self):
+        invalid_data = {**self.valid_data, "original_entries-0-url": ""}
+        with translation.override(None, deactivate=True):
+            response = self.client.post(reverse("entries:create"), invalid_data)
+        self.assertContains(response, "This field is required.")
 
-    @successful_clean_url_patch
-    def test_redirects_to_home_on_success(self, clean_url_mock):
-        response = self.client.post(reverse("entries:add"), self.form_data)
-        self.assertRedirects(response, reverse("entries:list"))
+    def test_entryset_is_not_created_without_valid_entries(self):
+        invalid_data = {**self.valid_data, "original_entries-0-url": ""}
+        self.client.post(reverse("entries:create"), invalid_data)
+        with self.assertRaises(EntrySet.DoesNotExist):
+            EntrySet.objects.get(name=self.entryset_name)
 
-
-class EntryDetailViewTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = user_recipe.make()
-        cls.entry = entry_recipe.make()
-        cls.reply = reply_recipe.make(entry=cls.entry)
-
-    def setUp(self):
-        self.reply_text = fake.pystr()
-        self.reply_data = {"text": self.reply_text}
-
-    def test_correctly_resolves_view(self):
-        response = self.client.get(self.entry.get_absolute_url())
-        self.assertEqual(
-            response.resolver_match.func.__name__, views.entry_detail_view.__name__
-        )
-
-    def test_get_returns_ok_status_code(self):
-        response = self.client.get(self.entry.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
-
-    def test_uses_correct_template(self):
-        response = self.client.get(self.entry.get_absolute_url())
-        self.assertTemplateUsed(response, "entries/entry_detail.html")
-
-    def test_post_redirects_to_same_entry_detail_page(self):
-        url = self.entry.get_absolute_url()
-        response = self.client.post(url, self.reply_data)
-        self.assertRedirects(response, url)
-
-    def test_returns_not_found_status_code_on_invalid_pk(self):
-        pk = fake.pyint()
-        response = self.client.get(reverse("entries:detail", args=(pk,)))
-        self.assertEqual(response.status_code, 404)
-
-    def test_posts_anonymous_reply(self):
-        self.client.post(self.entry.get_absolute_url(), self.reply_data)
-        reply = Reply.objects.get(entry=self.entry.pk, text=self.reply_text)
-        self.assertIsNone(reply._author)
-
-    def test_posts_authored_reply(self):
-        self.client.force_login(self.user)
-        self.client.post(self.entry.get_absolute_url(), self.reply_data)
-        reply = Reply.objects.get(entry=self.entry.pk, text=self.reply_text)
-        self.assertEqual(reply._author, self.user)
-
-    def test_posts_direct_reply(self):
-        self.client.post(self.entry.get_absolute_url(), self.reply_data)
-        reply = Reply.objects.get(entry=self.entry.pk, text=self.reply_text)
-        self.assertIsNone(reply.parent)
-
-    def test_posts_child_reply(self):
-        self.client.post(
-            self.entry.get_absolute_url(), {"parent": self.reply.pk, **self.reply_data},
-        )
-        reply = Reply.objects.get(
-            entry=self.entry.pk, parent=self.reply.pk, text=self.reply_text
-        )
-        self.assertEqual(reply.parent.pk, self.reply.pk)
+    @passing_clean_url_patch
+    def test_creates_entryset_for_anonymous_user(self, clean_url_mock):
+        self.client.logout()
+        self.client.post(reverse("entries:create"), self.valid_data)
+        EntrySet.objects.get(name=self.entryset_name)
