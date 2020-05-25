@@ -39,6 +39,7 @@ PROJECT_APPS = [
     "common.apps.CommonConfig",
     "users.apps.UsersConfig",
     "entries.apps.EntriesConfig",
+    "replies.apps.RepliesConfig",
 ]
 
 INSTALLED_APPS += PROJECT_APPS

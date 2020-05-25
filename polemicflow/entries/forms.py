@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import requests
 from django import forms
@@ -12,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from polemicflow.common.forms import AssignUserMixin
 
-from .models import Entry, EntrySet, Reply
+from .models import Entry, EntrySet
 
 logger = logging.getLogger(__name__)
 
@@ -69,22 +68,3 @@ EntryInlineFormset = inlineformset_factory(
     extra=0,
     can_delete=False,
 )
-
-
-class ReplyForm(AssignUserMixin[Reply], forms.ModelForm):
-    user_field_name = "author"
-
-    class Meta:
-        model = Reply
-        fields = ["parent", "text"]
-
-    def __init__(self, *args, entryset: Optional[EntrySet] = None, **kwargs):
-        if entryset is None:
-            raise ValueError("Entry set must be specified.")
-
-        self.entryset = entryset
-        super().__init__(*args, **kwargs)
-
-    def save(self, commit: bool = True) -> Reply:
-        self.instance.set = self.entryset
-        return super().save(commit=commit)
