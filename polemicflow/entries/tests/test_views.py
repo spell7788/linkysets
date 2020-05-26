@@ -105,3 +105,45 @@ class CreateEntrySetTests(TestCase):
         self.client.logout()
         self.client.post(reverse("entries:create"), self.valid_data)
         EntrySet.objects.get(name=self.entryset_name)
+
+
+class EntrySetDetailTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.entryset = entryset_recipe.make(_fill_optional=True)
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(
+            reverse("entries:detail", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(
+            response.resolver_match.func.__name__, views.EntrySetDetailView.__name__
+        )
+
+    def test_returns_correct_status_code(self):
+        response = self.client.get(
+            reverse("entries:detail", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_uses_correct_template(self):
+        response = self.client.get(
+            reverse("entries:detail", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertTemplateUsed(response, "entries/entryset_detail.html")
+
+    def test_contains_entryset_string(self):
+        response = self.client.get(
+            reverse("entries:detail", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertContains(response, str(self.entryset))
+
+    def test_contains_related_entries_string(self):
+        response = self.client.get(
+            reverse("entries:detail", kwargs={"pk": self.entryset.pk})
+        )
+        entries = self.entryset.entries.all()
+        self.assertGreater(len(entries), 0)
+        for entry in entries:
+            with self.subTest(entry=entry):
+                self.assertContains(response, str(entry))

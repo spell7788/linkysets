@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load common_tags %}
+
+{% block content %}
+  {{ block.super }}
+
+  <section>
+    <h1>
+      {{ entryset }}
+    </h1>
+
+    <span>
+      Author: {% get_username entryset %}
+    </span>
+
+    <hr>
+
+    <ul>
+    {% for entry in entryset.entries.all %}
+      <li>
+        [{{ entry.get_type_display }}] {{ entry }}
+      </li>
+    {% endfor %}
+    </ul>
+  </section>
+{% endblock content %}

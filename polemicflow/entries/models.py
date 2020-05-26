@@ -7,6 +7,7 @@ from django.db import models
 from django.shortcuts import reverse  # type: ignore
 from django.utils.translation import ugettext_lazy as _
 
+from polemicflow.common.templatetags.common_tags import get_username
 from polemicflow.common.models import AuthoredModel, TimestampedModel
 
 if TYPE_CHECKING:
@@ -43,8 +44,7 @@ class EntrySet(TimestampedModel, AuthoredModel):
         if self.name:
             return self.name
 
-        username = self.get_author().username
-        return _("%(username)s's set") % {"username": username or _("Anonymous")}
+        return _("%(username)s's set") % {"username": get_username(self)}
 
     def clean(self):
         if self.pk is not None and self.entries.count() < 1:

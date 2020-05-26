@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import sys
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
 from environs import Env
 
 env = Env()
@@ -123,3 +124,5 @@ LOGGING = {
 # fmt: on
 
 DEFAULT_REQUESTS_TIMEOUT = 1.5
+
+ANONYMOUS_USERNAME = _("Anonymous")

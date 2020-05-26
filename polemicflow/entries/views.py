@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView
 
 from .forms import EntryInlineFormset, EntrySetForm
 from .models import Entry, EntrySet
@@ -71,3 +71,8 @@ def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
 
     context = {"form": form, "formset": formset}
     return render(request, "entries/entryset_form.html", context)
+
+
+class EntrySetDetailView(DetailView):
+    model = EntrySet
+    template_name = "entries/entryset_detail.html"
