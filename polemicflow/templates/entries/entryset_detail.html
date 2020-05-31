@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load common_tags %}
+{% load common_tags mptt_tags %}
 
 {% block content %}
   {{ block.super }}
@@ -22,5 +22,39 @@
       </li>
     {% endfor %}
     </ul>
+  </section>
+
+  <section>
+    <h3>Replies</h3>
+
+    {% with entryset.replies.all as replies %}
+      {% if replies %}
+        {% recursetree replies %}
+          <ul>
+            <li>
+              [{% get_username node %}] {{ node }}
+              <div>
+                <a
+                  href="{% url 'replies:post' %}?entryset={{ entryset.pk }}&reply={{ node.pk }}"
+                >
+                  Reply
+                </a>
+              </div>
+            </li>
+            {% if children %}
+              <li>{{ children }}</li>
+            {% endif %}
+          </ul>
+        {% endrecursetree %}
+      {% else %}
+        <p>No replies yet.</p>
+      {% endif %}
+
+      <div>
+        <a href="{% url 'replies:post' %}?entryset={{ entryset.pk }}">
+          Reply
+        </a>
+      </div>
+    {% endwith %}
   </section>
 {% endblock content %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load common_tags %}
+
+{% block content %}
+  {{ block.super }}
+
+  <p>
+    <a href="{{ entryset.get_absolute_url }}">
+      {{ entryset }}
+    </a>
+  </p>
+
+  {% if parent_reply %}
+  <div>
+    You were replying to a
+
+    <p>
+      [{% get_username parent_reply %}] {{ parent_reply.text }}
+    </p>
+  </div>
+  {% endif %}
+
+  <form
+    action="{{ request.path_info }}?entryset={{ entryset.pk }}&reply={{ parent_reply.pk }}"
+    method="post"
+  >
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">
+      Reply
+    </button>
+  </form>
+{% endblock content %}

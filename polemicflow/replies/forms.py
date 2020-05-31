@@ -18,14 +18,17 @@ class ReplyForm(AssignUserMixin[Reply], forms.ModelForm):
     class Meta:
         model = Reply
         fields = ["parent", "text"]
+        widgets = {
+            "parent": forms.HiddenInput(),
+        }
 
     def __init__(self, *args, entryset: Optional[EntrySet] = None, **kwargs):
-        if entryset is None:
-            raise ValueError("Entry set must be specified.")
-
-        self.entryset = entryset
         super().__init__(*args, **kwargs)
+        self.entryset = entryset
 
     def save(self, commit: bool = True) -> Reply:
-        self.instance.set = self.entryset
+        if self.entryset is None:
+            raise ValueError("Entryset is required.")
+
+        self.instance.entryset = self.entryset
         return super().save(commit=commit)
