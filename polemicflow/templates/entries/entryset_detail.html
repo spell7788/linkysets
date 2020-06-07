@@ -18,7 +18,10 @@
     <ul>
     {% for entry in entryset.entries.all %}
       <li>
-        [{{ entry.get_type_display }}] {{ entry }}
+        [{{ entry.get_type_display }}]
+        <div>
+          {{ entry.render }}
+        </div>
       </li>
     {% endfor %}
     </ul>

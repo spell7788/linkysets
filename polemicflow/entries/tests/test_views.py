@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import translation
@@ -6,9 +8,9 @@ from faker import Faker
 from polemicflow.users.tests.bakery_recipes import user_recipe
 
 from .. import views
-from ..models import Entry, EntrySet
+from ..models import EntrySet
 from .bakery_recipes import entryset_recipe
-from .common import passing_clean_url_patch
+from .common import get_mock_response
 
 fake = Faker()
 
@@ -46,16 +48,19 @@ class CreateEntrySetTests(TestCase):
     def setUp(self):
         self.client.force_login(self.user)
         self.entryset_name = fake.pystr()
+        self.form0_url = fake.url()
+        self.form0_label = fake.pystr()
+        self.form0_mime_type = fake.mime_type()
         self.valid_data = {
             "name": self.entryset_name,
             # management form data
             "original_entries-TOTAL_FORMS": "1",
             "original_entries-INITIAL_FORMS": "0",
             # ---
-            "original_entries-0-type": fake.random_element(Entry.EntryType.values),
-            "original_entries-0-url": fake.url(),
-            "original_entries-0-label": fake.pystr(),
+            "original_entries-0-url": self.form0_url,
+            "original_entries-0-label": self.form0_label,
         }
+        self.valid_head_response = get_mock_response(self.form0_url, self.form0_mime_type)
 
     def test_correctly_resolves_view(self):
         response = self.client.get(reverse("entries:create"))
@@ -71,18 +76,21 @@ class CreateEntrySetTests(TestCase):
         response = self.client.get(reverse("entries:create"))
         self.assertTemplateUsed(response, "entries/entryset_form.html")
 
-    @passing_clean_url_patch
-    def test_successfully_creates_entryset(self, clean_url_mock):
+    @patch("requests.Session.head")
+    def test_successfully_creates_entryset(self, head_mock):
+        head_mock.return_value = self.valid_head_response
         self.client.post(reverse("entries:create"), self.valid_data)
         EntrySet.objects.get(name=self.entryset_name)
 
-    @passing_clean_url_patch
-    def test_redirects_after_entryset_created(self, clean_url_mock):
+    @patch("requests.Session.head")
+    def test_redirects_after_entryset_created(self, head_mock):
+        head_mock.return_value = self.valid_head_response
         response = self.client.post(reverse("entries:create"), self.valid_data)
         self.assertRedirects(response, reverse("entries:home"))
 
-    @passing_clean_url_patch
-    def test_creates_entryset_without_optional_name(self, clean_url_mock):
+    @patch("requests.Session.head")
+    def test_creates_entryset_without_optional_name(self, head_mock):
+        head_mock.return_value = self.valid_head_response
         self.valid_data["name"] = ""
         self.client.post(reverse("entries:create"), self.valid_data)
         entryset = EntrySet.objects.latest("created")
@@ -100,8 +108,9 @@ class CreateEntrySetTests(TestCase):
         with self.assertRaises(EntrySet.DoesNotExist):
             EntrySet.objects.get(name=self.entryset_name)
 
-    @passing_clean_url_patch
-    def test_creates_entryset_for_anonymous_user(self, clean_url_mock):
+    @patch("requests.Session.head")
+    def test_creates_entryset_for_anonymous_user(self, head_mock):
+        head_mock.return_value = self.valid_head_response
         self.client.logout()
         self.client.post(reverse("entries:create"), self.valid_data)
         EntrySet.objects.get(name=self.entryset_name)
@@ -138,12 +147,13 @@ class EntrySetDetailTests(TestCase):
         )
         self.assertContains(response, str(self.entryset))
 
-    def test_contains_related_entries_string(self):
+    def test_contains_related_rendered_entries(self):
         response = self.client.get(
             reverse("entries:detail", kwargs={"pk": self.entryset.pk})
         )
         entries = self.entryset.entries.all()
         self.assertGreater(len(entries), 0)
-        for entry in entries:
-            with self.subTest(entry=entry):
-                self.assertContains(response, str(entry))
+        with translation.override(None, deactivate=True):
+            for entry in entries:
+                with self.subTest(entry=entry):
+                    self.assertContains(response, entry.render())

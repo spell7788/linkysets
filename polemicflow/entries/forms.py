@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cgi
 import logging
 
 import requests
@@ -28,28 +29,47 @@ class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
         fields = ["type", "url", "label"]
+        widgets = {
+            "type": forms.HiddenInput(),
+        }
 
-    def clean_url(self):
-        url = self.cleaned_data["url"]
+    def clean(self):
+        cleaned_data = super().clean()
+        url = cleaned_data.get("url")
+        if not url:
+            return cleaned_data
 
-        if url == self.instance.url:
-            logger.debug("Skiped entry url clean, because url didn't change")
-            return url
-
-        try:
-            with requests.Session() as session:
-                session.max_redirects = 2
-                response = session.head(
-                    url, allow_redirects=True, timeout=settings.DEFAULT_REQUESTS_TIMEOUT
+        if url != self.instance.url:
+            try:
+                with requests.Session() as session:
+                    session.max_redirects = 2
+                    response = session.head(
+                        url, allow_redirects=True, timeout=settings.DEFAULT_REQUESTS_TIMEOUT
+                    )
+            except requests.RequestException:
+                validation_error = ValidationError(
+                    _("Could not reach target url: %(url)s"),
+                    code="inaccessible_url",
+                    params={"url": url},
                 )
-        except requests.RequestException:
-            raise ValidationError(
-                _("Could not reach target url: %(url)s"),
-                code="inaccessible",
-                params={"url": url},
-            )
+                self.add_error("url", validation_error)
+            else:
+                url = response.url
+                cleaned_data = {**cleaned_data, "url": url}
+                logger.debug('Entry url got tested to "%s"', url)
 
-        return response.url
+                mime_type, params = cgi.parse_header(response.headers["content-type"])
+                logger.debug(
+                    '"%s" mime type is "%s". Parameters: %s', url, mime_type, params,
+                )
+                type_ = self.instance.determine_type(mime_type)
+                cleaned_data = {**cleaned_data, "type": type_}
+                logger.debug(
+                    'Entry type got updated to "%s"',
+                    Entry.EntryType(type_).label,  # type: ignore
+                )
+
+        return cleaned_data
 
 
 class EntryInlineFormsetBase(BaseInlineFormSet):
@@ -65,6 +85,6 @@ EntryInlineFormset = inlineformset_factory(
     formset=EntryInlineFormsetBase,
     min_num=1,
     validate_min=True,
-    extra=0,
+    extra=1,
     can_delete=False,
 )

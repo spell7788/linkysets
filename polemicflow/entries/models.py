@@ -1,19 +1,26 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import logging
+from collections import OrderedDict
+from typing import TYPE_CHECKING, cast
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import reverse  # type: ignore
 from django.utils.translation import ugettext_lazy as _
 
-from polemicflow.common.templatetags.common_tags import get_username
 from polemicflow.common.models import AuthoredModel, TimestampedModel
+from polemicflow.common.templatetags.common_tags import get_username
+
+from . import behavior
+from .behavior import EntryTypeBehavior
 
 if TYPE_CHECKING:
     EntrySetManagerBase = models.Manager["EntrySet"]
 else:
     EntrySetManagerBase = models.Manager
+
+logger = logging.getLogger(__name__)
 
 
 class EntrySetManager(EntrySetManagerBase):
@@ -62,6 +69,19 @@ class Entry(models.Model):
         IMAGE = 1, _("Image")
         VIDEO = 2, _("Video")
         YT_VIDEO = 3, _("Youtube video")
+        AUDIO = 4, _("Audio")
+
+    _TYPE_BEHAVIOR_DICT = OrderedDict(
+        (
+            (EntryType.IMAGE, behavior.ImageTypeBehavior),
+            (EntryType.VIDEO, behavior.VideoTypeBehavior),
+            (EntryType.AUDIO, behavior.AudioBehavior),
+            (EntryType.YT_VIDEO, behavior.YtVideoTypeBehavior),
+            # URL behavior must be last in the dict,
+            # because it always return true for is_my_type test
+            (EntryType.URL, behavior.UrlTypeBehavior),
+        )
+    )
 
     type = models.PositiveSmallIntegerField(
         _("type"),
@@ -91,4 +111,20 @@ class Entry(models.Model):
         verbose_name_plural = _("entries")
 
     def __str__(self):
-        return self.url
+        return f"({self.get_type_display()}) {self.label or self.url}"
+
+    def render(self) -> str:
+        return self.type_behavior.render()
+
+    def determine_type(self, mime_type: str) -> EntryType:
+        for type_, behavior_cls in self._TYPE_BEHAVIOR_DICT.items():
+            if behavior_cls.is_my_type(self, mime_type):
+                return type_
+
+        return self._meta.get_field("type").default
+
+    @property
+    def type_behavior(self) -> EntryTypeBehavior:
+        type_ = cast(Entry.EntryType, self.type)
+        behavior_cls = self._TYPE_BEHAVIOR_DICT[type_]
+        return behavior_cls(self)

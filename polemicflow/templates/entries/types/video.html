@@ -1,0 +1,11 @@
+{% load i18n %}
+
+<video src="{{ entry.url }}" controls width="560">
+  {% blocktrans with url=entry.url trimmed %}
+    Your browser does not support the video.
+    Check the following link instead:
+    <a href="{{ url }}" target="_blank" rel="noopener noreferrer">
+      [video]
+    </a>
+  {% endblocktrans %}
+</video>
