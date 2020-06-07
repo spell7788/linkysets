@@ -7,7 +7,7 @@ verify_ssl = true
 mypy = "*"
 django-stubs = "*"
 django-debug-toolbar = "*"
-black = "*"
+black = "==19.10b0"
 flake8 = "*"
 flake8-logging-format = "*"
 flake8-comprehensions = "*"
@@ -28,9 +28,6 @@ requests = "*"
 
 [requires]
 python_version = "3.8"
-
-[pipenv]
-allow_prereleases = true
 
 [scripts]
 test = "docker-compose run --rm web python manage.py test --settings=config.settings.testing"
