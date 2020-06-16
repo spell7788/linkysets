@@ -3,9 +3,10 @@ from typing import Any
 
 from django.contrib import messages
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
 from .forms import EntryFormset, EntrySetForm
@@ -84,3 +85,15 @@ def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
 class EntrySetDetailView(DetailView):
     model = EntrySet
     template_name = "entries/entryset_detail.html"
+
+
+@require_POST
+def repost_entry_view(request: HttpRequest, pk: Any) -> HttpResponse:
+    if Entry.objects.filter(pk=pk).exists():
+        with transaction.atomic():
+            entryset = EntrySet.objects.create()
+            entryset.entries.add(pk)
+    else:
+        raise Http404(f"No {Entry._meta.object_name} matches the given query.")
+
+    return redirect("entries:update", pk=entryset.pk)

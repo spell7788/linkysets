@@ -235,3 +235,35 @@ class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
             reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
         )
         self.assertFalse(Entry.objects.filter(pk=delete_id).exists())
+
+
+class RepostEntryTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.entry = entry_recipe.make()
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
+        self.assertEqual(
+            response.resolver_match.func.__name__, views.repost_entry_view.__name__
+        )
+
+    def test_get_returns_not_allowed_status_code(self):
+        response = self.client.get(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
+        self.assertEqual(response.status_code, 405)
+
+    def test_post_redirects_to_entryset_update(self):
+        response = self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
+        entryset = EntrySet.objects.latest("id")
+        self.assertRedirects(
+            response, reverse("entries:update", kwargs={"pk": entryset.pk})
+        )
+
+    def test_created_entryset_has_reposted_entry(self):
+        self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
+        entryset = EntrySet.objects.latest("id")
+        entryset.entries.get(pk=self.entry.pk)
+
+    def test_returns_not_found_if_nonexistent_entry(self):
+        response = self.client.post(reverse("entries:repost", kwargs={"pk": fake.pyint()}))
+        self.assertEqual(response.status_code, 404)

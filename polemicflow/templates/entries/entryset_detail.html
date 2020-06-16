@@ -19,6 +19,23 @@
     {% for entry in entryset.entries.all %}
       <li>
         [{{ entry.get_type_display }}]
+
+        {% if entry.origin.pk != entryset.pk and entry.in_origin %}
+          <span>
+            [reposted from
+            <a href="{{ entry.origin.get_absolute_url }}">
+              {{ entry.origin }}
+            </a>]
+          </span>
+        {% endif %}
+
+        <form action="{% url 'entries:repost' pk=entry.pk %}" method="post">
+          {% csrf_token %}
+          <button type="submit">
+            Repost
+          </button>
+        </form>
+
         <div>
           {{ entry.render }}
         </div>
