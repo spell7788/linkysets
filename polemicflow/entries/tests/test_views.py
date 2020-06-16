@@ -8,9 +8,9 @@ from faker import Faker
 from polemicflow.users.tests.bakery_recipes import user_recipe
 
 from .. import views
-from ..models import EntrySet
-from .bakery_recipes import entryset_recipe
-from .common import get_mock_response
+from ..models import Entry, EntrySet
+from .bakery_recipes import entry_recipe, entryset_recipe
+from .common import EntryFormsetDataMixin, head_response_factory
 
 fake = Faker()
 
@@ -40,7 +40,7 @@ class HomeTests(TestCase):
         self.assertContains(response, str(self.entryset))
 
 
-class CreateEntrySetTests(TestCase):
+class CreateEntrySetTests(EntryFormsetDataMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = user_recipe.make()
@@ -48,19 +48,14 @@ class CreateEntrySetTests(TestCase):
     def setUp(self):
         self.client.force_login(self.user)
         self.entryset_name = fake.pystr()
-        self.form0_url = fake.url()
-        self.form0_label = fake.pystr()
-        self.form0_mime_type = fake.mime_type()
         self.valid_data = {
+            **self.get_random_data(),
+            "entries-INITIAL_FORMS": "0",
             "name": self.entryset_name,
-            # management form data
-            "original_entries-TOTAL_FORMS": "1",
-            "original_entries-INITIAL_FORMS": "0",
-            # ---
-            "original_entries-0-url": self.form0_url,
-            "original_entries-0-label": self.form0_label,
         }
-        self.valid_head_response = get_mock_response(self.form0_url, self.form0_mime_type)
+        self.head_response = head_response_factory(
+            get_content_type=lambda response: fake.mime_type()
+        )
 
     def test_correctly_resolves_view(self):
         response = self.client.get(reverse("entries:create"))
@@ -78,39 +73,39 @@ class CreateEntrySetTests(TestCase):
 
     @patch("requests.Session.head")
     def test_successfully_creates_entryset(self, head_mock):
-        head_mock.return_value = self.valid_head_response
+        head_mock.side_effect = self.head_response
         self.client.post(reverse("entries:create"), self.valid_data)
         EntrySet.objects.get(name=self.entryset_name)
 
     @patch("requests.Session.head")
     def test_redirects_after_entryset_created(self, head_mock):
-        head_mock.return_value = self.valid_head_response
+        head_mock.side_effect = self.head_response
         response = self.client.post(reverse("entries:create"), self.valid_data)
         self.assertRedirects(response, reverse("entries:home"))
 
     @patch("requests.Session.head")
     def test_creates_entryset_without_optional_name(self, head_mock):
-        head_mock.return_value = self.valid_head_response
+        head_mock.side_effect = self.head_response
         self.valid_data["name"] = ""
         self.client.post(reverse("entries:create"), self.valid_data)
         entryset = EntrySet.objects.latest("created")
         self.assertEqual(entryset.name, "")
 
     def test_contains_field_is_required_error(self):
-        invalid_data = {**self.valid_data, "original_entries-0-url": ""}
+        invalid_data = {**self.valid_data, "entries-0-url": ""}
         with translation.override(None, deactivate=True):
             response = self.client.post(reverse("entries:create"), invalid_data)
         self.assertContains(response, "This field is required.")
 
     def test_entryset_is_not_created_without_valid_entries(self):
-        invalid_data = {**self.valid_data, "original_entries-0-url": ""}
+        invalid_data = {**self.valid_data, "entries-0-url": ""}
         self.client.post(reverse("entries:create"), invalid_data)
         with self.assertRaises(EntrySet.DoesNotExist):
             EntrySet.objects.get(name=self.entryset_name)
 
     @patch("requests.Session.head")
     def test_creates_entryset_for_anonymous_user(self, head_mock):
-        head_mock.return_value = self.valid_head_response
+        head_mock.side_effect = self.head_response
         self.client.logout()
         self.client.post(reverse("entries:create"), self.valid_data)
         EntrySet.objects.get(name=self.entryset_name)
@@ -157,3 +152,86 @@ class EntrySetDetailTests(TestCase):
             for entry in entries:
                 with self.subTest(entry=entry):
                     self.assertContains(response, entry.render())
+
+
+class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
+    def setUp(self):
+        self.entryset = entryset_recipe.make()
+        self.valid_data = self.get_data_from_entryset(self.entryset)
+        self.head_response = head_response_factory(
+            get_content_type=lambda response: fake.mime_type()
+        )
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(
+            response.resolver_match.func.__name__, views.update_entryset_view.__name__
+        )
+
+    def test_get_returns_ok_status_code(self):
+        response = self.client.get(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_uses_correct_template(self):
+        response = self.client.get(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertTemplateUsed(response, "entries/entryset_form.html")
+
+    @patch("requests.Session.head")
+    def test_post_redirects_on_success(self, head_mock):
+        head_mock.side_effect = self.head_response
+        response = self.client.post(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk}), self.valid_data
+        )
+        self.assertRedirects(response, reverse("entries:home"))
+
+    @patch("requests.Session.head")
+    def test_adds_entry(self, head_mock):
+        head_mock.side_effect = self.head_response
+        url, label = fake.url(), fake.pystr()
+        valid_data = {
+            **self.valid_data,
+            "entries-TOTAL_FORMS": "3",
+            "entries-2-url": url,
+            "entries-2-label": label,
+        }
+        self.client.post(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+        )
+        entry = self.entryset.entries.get(url=url)
+        self.assertEqual(entry.url, url)
+        self.assertEqual(entry.label, label)
+
+    @patch("requests.Session.head")
+    def test_updates_entry(self, head_mock):
+        head_mock.side_effect = self.head_response
+        url, label = fake.url(), fake.pystr()
+        valid_data = {
+            **self.valid_data,
+            "entries-0-url": url,
+            "entries-0-label": label,
+        }
+        self.client.post(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+        )
+        entry = self.entryset.entries.get(url=url)
+        self.assertEqual(entry.url, url)
+        self.assertEqual(entry.label, label)
+
+    @patch("requests.Session.head")
+    def test_deletes_entry(self, head_mock):
+        head_mock.side_effect = self.head_response
+        delete_id = self.valid_data["entries-0-id"]
+        valid_data = {
+            **self.valid_data,
+            "entries-0-DELETE": "on",
+        }
+        self.client.post(
+            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+        )
+        self.assertFalse(Entry.objects.filter(pk=delete_id).exists())

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import cgi
+import itertools
 import logging
+from typing import Sequence
 
 import requests
 from django import forms
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.forms import BaseInlineFormSet, inlineformset_factory
+from django.db.models import QuerySet
+from django.forms import BaseInlineFormSet, ValidationError, inlineformset_factory
 from django.utils.translation import ugettext_lazy as _
 
 from polemicflow.common.forms import AssignUserMixin
@@ -72,19 +74,48 @@ class EntryForm(forms.ModelForm):
         return cleaned_data
 
 
-class EntryInlineFormsetBase(BaseInlineFormSet):
-    def __init__(self, *args, is_update: bool = False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.can_delete = is_update
+class EntryFormsetBase(BaseInlineFormSet):
+    def clean(self):
+        active_forms = [form for form in self.forms if form not in self.deleted_forms]
+
+        urls = (form.cleaned_data.get("url") for form in active_forms if form.cleaned_data)
+        urls = (url for url in urls if url)
+        for url, other in itertools.combinations(urls, 2):
+            if url == other:
+                raise ValidationError(
+                    _("Entries urls must be unique in one set."), code="unique_entries"
+                )
+
+    def save(self, commit: bool = True) -> Sequence[Entry]:
+        entries = (form.instance for form in self.forms)
+        for entry in entries:
+            if entry._state.adding and entry.origin is None:
+                entry.origin = self.instance
+
+        return super().save(commit)
+
+    def get_queryset(self) -> QuerySet[Entry]:
+        if not self.instance.pk:
+            model = type(self.instance)
+            return model._default_manager.none()
+
+        qs = self.instance.entries.all()
+        if not qs.ordered:
+            qs = qs.order_by(self.model._meta.pk.name)
+
+        return qs
+
+    @classmethod
+    def get_default_prefix(cls) -> str:
+        return "entries"
 
 
-EntryInlineFormset = inlineformset_factory(
+EntryFormset = inlineformset_factory(
     EntrySet,
     Entry,
     form=EntryForm,
-    formset=EntryInlineFormsetBase,
+    formset=EntryFormsetBase,
     min_num=1,
     validate_min=True,
     extra=1,
-    can_delete=False,
 )

@@ -53,14 +53,12 @@ class EntrySet(TimestampedModel, AuthoredModel):
 
         return _("%(username)s's set") % {"username": get_username(self)}
 
-    def clean(self):
-        if self.pk is not None and self.entries.count() < 1:
-            raise ValidationError(
-                "At least one added entry is required.", code="entry_required"
-            )
-
     def get_absolute_url(self) -> str:
         return reverse("entries:detail", kwargs={"pk": self.pk})
+
+    def clean(self):
+        if not self._state.adding and self.entries.count() == 0:  # type: ignore
+            raise ValidationError("Entryset cannot have zero entries.", code="no_entries")
 
 
 class Entry(models.Model):
@@ -112,6 +110,19 @@ class Entry(models.Model):
 
     def __str__(self):
         return f"({self.get_type_display()}) {self.label or self.url}"
+
+    def delete(self, *args, **kwargs):
+        sets_count = self.sets.count()
+        if sets_count != 0:
+            logger.debug(
+                "Entry \"%s\" hasn't been deleted because it's posted to %d entrysets.",
+                self,
+                sets_count,
+            )
+            return
+
+        logger.debug('Entry "%s" (pk=%s) got deleted.', self, self.pk)
+        return super().delete(*args, **kwargs)
 
     def render(self) -> str:
         return self.type_behavior.render()

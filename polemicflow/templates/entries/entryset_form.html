@@ -4,7 +4,7 @@
 {% block content %}
   {{ block.super }}
 
-  <form action="{{ request.path_info }}" method="post" novalidate>
+  <form action="{{ request.path_info }}" method="post" novalidate autocomplete="off">
     {% csrf_token %}
     {{ form.as_p }}
 
