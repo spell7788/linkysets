@@ -127,9 +127,9 @@ class Entry(models.Model):
     def render(self) -> str:
         return self.type_behavior.render()
 
-    def determine_type(self, mime_type: str) -> EntryType:
+    def determine_type(self, url: str, mime_type: str, *args, **kwargs) -> EntryType:
         for type_, behavior_cls in self._TYPE_BEHAVIOR_DICT.items():
-            if behavior_cls.is_my_type(self, mime_type):
+            if behavior_cls.is_my_type(self, url, mime_type, *args, **kwargs):
                 return type_
 
         return self._meta.get_field("type").default

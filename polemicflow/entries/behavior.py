@@ -25,7 +25,7 @@ class EntryTypeBehavior:
         self.entry = entry
 
     @classmethod
-    def is_my_type(cls, entry: Entry, mime_type: str, *args, **kwargs) -> bool:
+    def is_my_type(cls, entry: Entry, url: str, mime_type: str, *args, **kwargs) -> bool:
         if not cls.mime_types:
             return False
         return mime_type in cls.mime_types
@@ -104,10 +104,10 @@ class YtVideoTypeBehavior(EntryTypeBehavior):
     ]
 
     @classmethod
-    def is_my_type(cls, entry: Entry, mime_type: str, *args, **kwargs) -> bool:
-        netloc = urlsplit(entry.url).netloc
-        logger.debug('Youtube url netloc: "%s"', netloc)
-        is_my_mime_type = super().is_my_type(entry, mime_type, *args, **kwargs)
+    def is_my_type(cls, entry: Entry, url: str, mime_type: str, *args, **kwargs) -> bool:
+        netloc = urlsplit(url).netloc
+        logger.debug('Youtube url network location: "%s"', netloc)
+        is_my_mime_type = super().is_my_type(entry, url, mime_type, *args, **kwargs)
         return is_my_mime_type and netloc in cls.YT_NETLOC_VARIANTS
 
     def get_render_context(self):

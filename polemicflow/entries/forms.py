@@ -64,7 +64,7 @@ class EntryForm(forms.ModelForm):
                 logger.debug(
                     '"%s" mime type is "%s". Parameters: %s', url, mime_type, params,
                 )
-                type_ = self.instance.determine_type(mime_type)
+                type_ = self.instance.determine_type(url, mime_type)
                 cleaned_data = {**cleaned_data, "type": type_}
                 logger.debug(
                     'Entry type got updated to "%s"',

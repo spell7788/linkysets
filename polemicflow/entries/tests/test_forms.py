@@ -9,7 +9,7 @@ from polemicflow.users.tests.bakery_recipes import user_recipe
 from ..forms import EntryForm, EntryFormset
 from ..models import Entry
 from .bakery_recipes import entry_recipe, entryset_recipe
-from .common import EntryFormsetDataMixin, head_response_factory
+from .common import EntryFormsetDataMixin, head_response_factory, get_random_youtube_url
 
 fake = Faker()
 
@@ -21,8 +21,9 @@ class EntryFormTests(TestCase):
         cls.entry = entry_recipe.make()
 
     def setUp(self):
+        self.url = fake.url()
         self.label = fake.pystr()
-        self.valid_data = {"url": self.entry.url, "label": self.label}
+        self.valid_data = {"url": self.url, "label": self.label}
         self.head_response = head_response_factory(
             get_content_type=lambda response: fake.mime_type()
         )
@@ -50,9 +51,7 @@ class EntryFormTests(TestCase):
         except KeyError:
             self.fail(f"Validation error was not added: {form.errors.as_data()}")
 
-        self.assertEqual(
-            str(validation_error), f"Could not reach target url: {self.entry.url}"
-        )
+        self.assertEqual(str(validation_error), f"Could not reach target url: {self.url}")
 
     @patch("requests.Session.head")
     def test_successfully_saves_entry_instance(self, head_mock):
@@ -65,6 +64,7 @@ class EntryFormTests(TestCase):
 
     @patch("requests.Session.head")
     def test_skips_url_request_on_resave_with_same_url(self, head_mock):
+        self.valid_data["url"] = self.entry.url
         form = EntryForm(self.valid_data, instance=self.entry)
         form.save()
         head_mock.assert_not_called()
@@ -75,6 +75,14 @@ class EntryFormTests(TestCase):
         form = EntryForm(self.valid_data)
         form.save()
         head_mock.assert_called_once()
+
+    @patch("requests.Session.head")
+    def test_determines_youtube_video_type(self, head_mock):
+        head_mock.side_effect = head_response_factory()
+        self.valid_data["url"] = get_random_youtube_url()
+        form = EntryForm(self.valid_data)
+        entry = form.save()
+        self.assertEqual(entry.type, Entry.EntryType.YT_VIDEO)
 
 
 class EntryFormsetTests(EntryFormsetDataMixin, TestCase):

@@ -44,19 +44,20 @@ class EntryTests(TestCase):
         )
 
         for type_, behavior_cls in types:
+            url = fake.url()
             mime_type = fake.random_element(behavior_cls.mime_types)
-            with self.subTest(type_=type_, mime_type=mime_type):
-                self.assertEqual(type_, self.entry.determine_type(mime_type))
+            with self.subTest(type_=type_, url=url, mime_type=mime_type):
+                self.assertEqual(type_, self.entry.determine_type(url, mime_type))
 
     def test_correctly_determines_youtube_type(self):
-        self.entry.url = get_random_youtube_url()
+        url = get_random_youtube_url()
         mime_type = fake.random_element(behavior.YtVideoTypeBehavior.mime_types)
-        type_ = self.entry.determine_type(mime_type)
+        type_ = self.entry.determine_type(url, mime_type)
         self.assertEqual(type_, Entry.EntryType.YT_VIDEO)
 
     def test_correctly_determines_url_type(self):
-        self.entry.url = fake.url()
-        type_ = self.entry.determine_type("text/html")
+        url = fake.url()
+        type_ = self.entry.determine_type(url, "text/html")
         self.assertEqual(type_, Entry.EntryType.URL)
 
     def test_gets_correct_type_behavior(self):
