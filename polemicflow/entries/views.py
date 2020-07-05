@@ -52,7 +52,7 @@ def create_entryset_view(request: HttpRequest) -> HttpResponse:
     return render(request, "entries/entryset_form.html", context)
 
 
-def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
+def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
     entryset = get_object_or_404(EntrySet, pk=pk)
     form = EntrySetForm(request.POST or None, instance=entryset)
     formset = EntryFormset(request.POST or None, instance=entryset)
@@ -82,14 +82,14 @@ def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
             updated = True
 
         if updated:
-            messages.success(request, _("Entries set has been successfully updated."))
+            messages.success(request, _("Set has been successfully edited."))
             return redirect("entries:home")
 
     context = {
         "form": form,
         "formset": formset,
-        "hero_title": _("Update set"),
-        "submit_text": _("Update"),
+        "hero_title": _("Edit set"),
+        "submit_text": _("Confirm"),
     }
     return render(request, "entries/entryset_form.html", context)
 
@@ -108,4 +108,4 @@ def repost_entry_view(request: HttpRequest, pk: Any) -> HttpResponse:
     else:
         raise Http404(f"No {Entry._meta.object_name} matches the given query.")
 
-    return redirect("entries:update", pk=entryset.pk)
+    return redirect("entries:edit", pk=entryset.pk)

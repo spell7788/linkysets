@@ -157,7 +157,7 @@ class EntrySetDetailTests(TestCase):
                     self.assertContains(response, text)
 
 
-class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
+class EditEntrySetTests(EntryFormsetDataMixin, TestCase):
     def setUp(self):
         self.entryset = entryset_recipe.make()
         self.valid_data = self.get_data_from_entryset(self.entryset)
@@ -166,30 +166,24 @@ class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
         )
 
     def test_correctly_resolves_view(self):
-        response = self.client.get(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk})
-        )
+        response = self.client.get(reverse("entries:edit", kwargs={"pk": self.entryset.pk}))
         self.assertEqual(
-            response.resolver_match.func.__name__, views.update_entryset_view.__name__
+            response.resolver_match.func.__name__, views.edit_entryset_view.__name__
         )
 
     def test_get_returns_ok_status_code(self):
-        response = self.client.get(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk})
-        )
+        response = self.client.get(reverse("entries:edit", kwargs={"pk": self.entryset.pk}))
         self.assertEqual(response.status_code, 200)
 
     def test_uses_correct_template(self):
-        response = self.client.get(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk})
-        )
+        response = self.client.get(reverse("entries:edit", kwargs={"pk": self.entryset.pk}))
         self.assertTemplateUsed(response, "entries/entryset_form.html")
 
     @patch("requests.Session.head")
     def test_post_redirects_on_success(self, head_mock):
         head_mock.side_effect = self.head_response
         response = self.client.post(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk}), self.valid_data
+            reverse("entries:edit", kwargs={"pk": self.entryset.pk}), self.valid_data
         )
         self.assertRedirects(response, reverse("entries:home"))
 
@@ -204,7 +198,7 @@ class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
             "entries-2-label": label,
         }
         self.client.post(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+            reverse("entries:edit", kwargs={"pk": self.entryset.pk}), valid_data
         )
         entry = self.entryset.entries.get(url=url)
         self.assertEqual(entry.url, url)
@@ -220,7 +214,7 @@ class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
             "entries-0-label": label,
         }
         self.client.post(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+            reverse("entries:edit", kwargs={"pk": self.entryset.pk}), valid_data
         )
         entry = self.entryset.entries.get(url=url)
         self.assertEqual(entry.url, url)
@@ -235,7 +229,7 @@ class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):
             "entries-0-DELETE": "on",
         }
         self.client.post(
-            reverse("entries:update", kwargs={"pk": self.entryset.pk}), valid_data
+            reverse("entries:edit", kwargs={"pk": self.entryset.pk}), valid_data
         )
         self.assertFalse(Entry.objects.filter(pk=delete_id).exists())
 
@@ -258,9 +252,7 @@ class RepostEntryTests(TestCase):
     def test_post_redirects_to_entryset_update(self):
         response = self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
         entryset = EntrySet.objects.latest("id")
-        self.assertRedirects(
-            response, reverse("entries:update", kwargs={"pk": entryset.pk})
-        )
+        self.assertRedirects(response, reverse("entries:edit", kwargs={"pk": entryset.pk}))
 
     def test_created_entryset_has_reposted_entry(self):
         self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
