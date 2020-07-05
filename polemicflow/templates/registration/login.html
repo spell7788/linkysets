@@ -1,11 +1,17 @@
-{% extends 'base.html' %}
+{% extends 'hero.html' %}
+{% load i18n %}
 
-{% block content %}
-  <form action="{% url 'users:login' %}" method="post">
+{% block hero_content %}
+  {{ block.super }}
+
+  <form action="{% url 'users:login' %}" method="post" novalidate>
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">
-      Login
-    </button>
+    {% include "users/includes/login_form.html" with form=form %}
+
+    <div class="d-flex justify-content-center">
+      <button type="submit" class="btn btn-primary btn-lg">
+        {% trans "Login" %}
+      </button>
+    </div>
   </form>
-{% endblock content %}
+{% endblock hero_content %}

@@ -1,0 +1,20 @@
+{% for field in form.hidden_fields %}
+  {{ field }}
+{% endfor %}
+
+{% for field in form.visible_fields %}
+  <div class="form-group">
+    <label for="{{ field.id_for_label }}">
+      {{ field.label }}
+    </label>
+
+    <input
+      type="{{ field.field.widget.input_type }}"
+      name="{{ field.html_name }}"
+      placeholder="{{ field.label }}"
+      id="{{ field.id_for_label }}"
+      autocomplete="current-password"
+      class="form-control"
+    >
+  </div>
+{% endfor %}

@@ -16,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class HomeView(ListView):
-    model = EntrySet
+    queryset = EntrySet.objects.num_entries().num_replies()
     template_name = "entries/home.html"
+    ordering = "created"
+    paginate_by = 10
 
 
 def create_entryset_view(request: HttpRequest) -> HttpResponse:
@@ -41,7 +43,12 @@ def create_entryset_view(request: HttpRequest) -> HttpResponse:
             messages.success(request, _("Set has been successfully created."))
             return redirect("entries:home")
 
-    context = {"form": form, "formset": formset}
+    context = {
+        "form": form,
+        "formset": formset,
+        "hero_title": _("Create set"),
+        "submit_text": _("Create"),
+    }
     return render(request, "entries/entryset_form.html", context)
 
 
@@ -78,12 +85,17 @@ def update_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
             messages.success(request, _("Entries set has been successfully updated."))
             return redirect("entries:home")
 
-    context = {"form": form, "formset": formset}
+    context = {
+        "form": form,
+        "formset": formset,
+        "hero_title": _("Update set"),
+        "submit_text": _("Update"),
+    }
     return render(request, "entries/entryset_form.html", context)
 
 
 class EntrySetDetailView(DetailView):
-    model = EntrySet
+    queryset = EntrySet.objects.num_entries().num_replies().prefetch_replies()
     template_name = "entries/entryset_detail.html"
 
 

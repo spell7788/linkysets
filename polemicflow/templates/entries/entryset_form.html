@@ -1,28 +1,65 @@
-{% extends 'base.html' %}
-{% load i18n %}
+{% extends 'hero.html' %}
+{% load i18n static %}
 
-{% block content %}
+{% block hero_content %}
   {{ block.super }}
 
-  <form action="{{ request.path_info }}" method="post" novalidate autocomplete="off">
+  <form
+    action="{{ request.path_info }}"
+    method="post"
+    novalidate
+    autocomplete="off"
+    id="entryset-form"
+  >
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <div class="form-group">
+      <label for="{{ form.name.id_for_label }}">
+        {{ form.name.label }}
+      </label>
+
+      <input
+        type="text"
+        name="{{ form.name.html_name }}"
+        value="{{ form.name.value|default_if_none:"" }}"
+        id="{{ form.name.id_for_label }}"
+        {% if field.field.required %}required{% endif %}
+        class="form-control"
+      >
+
+      <small class="form-text text-muted">
+        {{ form.name.help_text }}
+      </small>
+    </div>
 
     <hr>
 
-    <ul>
-    {% for error in formset.non_form_errors %}
-      <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-
     {{ formset.management_form }}
-    {% for form in formset %}
-      {{ form.as_p }}
+    {% for form in formset.forms %}
+      {% include "entries/includes/entry_form.html" with form=form %}
     {% endfor %}
 
-    <button type="submit">
-      {% trans "Submit" %}
-    </button>
+    {{ formset.non_field_errors }}
+
+    <div class="mb-2">
+      <button type="button" id="add-entry" class="btn btn-dark btn-sm px-2">
+        {% trans "Add" %}
+      </button>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary btn-lg px-4">
+        {{ submit_text }}
+      </button>
+    </div>
   </form>
-{% endblock content %}
+
+  <div id="empty-form" class="d-none">
+    {% include "entries/includes/entry_form.html" with form=formset.empty_form %}
+  </div>
+{% endblock hero_content %}
+
+{% block js %}
+  {{ block.super }}
+  <script src="{% static 'js/entryset_form.js' %}"></script>
+{% endblock js %}

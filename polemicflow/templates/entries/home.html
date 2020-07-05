@@ -1,39 +1,95 @@
 {% extends 'base.html' %}
+{% load i18n humanize %}
 
 {% block content %}
   {{ block.super }}
 
-  {% if user.is_authenticated %}
-    You are logged in as <strong>{{ user.username }}</strong>
+  <div class="jumbotron jumbotron-fluid py-4 bg-dark text-light">
+    <div class="container">
+      <h4 class="display-4 font-weight-bold">
+        {% trans "Sets" %}
+      </h4>
 
-    <a href="{% url 'users:logout' %}">
-      Logout
-    </a>
-  {% else %}
-    <form action="{% url 'users:login' %}" method="post">
-      {% csrf_token %}
-      {{ login_form.as_p }}
-      <button type="submit">
-        Login
-      </button>
-    </form>
+      <p class="lead">
+        {% trans "Create your fascinating content sets 🥳" %}
+      </p>
 
-    <a href="{% url 'users:register' %}">
-      Register
-    </a>
-  {% endif %}
-
-  <hr>
-
-  <ul>
-  {% for entryset in entryset_list %}
-    <li>
-      {{ entryset.pk }}
-
-      <a href="{{ entryset.get_absolute_url }}">
-        {{ entryset }}
+      <a
+        href="{% url 'entries:create' %}"
+        class="btn btn-success btn-lg font-weight-bold px-4"
+      >
+        {% trans "Create" %}
       </a>
-    </li>
-  {% endfor %}
-  </ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row row-cols-1">
+      <div class="col px-0">
+        <h4 class="display-4 text-center">
+          {% trans "Check out our users sets" %}
+        </h4>
+      </div>
+
+      <div class="col px-0">
+        <ul class="list-unstyled">
+          {% for entryset in page_obj %}
+            <li id="set{{ entryset.pk }}" class="media shadow-sm p-4 ml-2 mb-4">
+              <div class="media-body">
+                <a href="{{ entryset.get_absolute_url }}" class="h3 text-decoration-none">
+                  {{ entryset }}
+                </a>
+
+                <hr>
+
+                <div class="accordion">
+                  {% for entry in entryset.entries.all %}
+                    {% include "entries/includes/accordion_card.html" %}
+                  {% endfor %}
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  {% with entryset.get_author as author %}
+                    <a
+                      href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#set{{ entryset.pk }}{% endif %}"
+                    >
+                      {{ author.username }}
+                    </a>
+                  {% endwith %}
+
+                  <div>
+                    <span class="text-muted mr-1">
+                      {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
+                        {{ humanized_num_entries }} entry
+                        {% plural %}
+                        {{ humanized_num_entries }} entries
+                      {% endblocktrans %}
+                    </span>
+
+                    <span class="text-muted ml-1">
+                      {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
+                        {{ humanized_num_replies }} reply
+                        {% plural %}
+                        {{ humanized_num_replies }} replies
+                      {% endblocktrans %}
+                    </span>
+                  </div>
+
+                  <span class="text-muted d-none d-md-block">
+                    {{ entryset.created|date:"SHORT_DATETIME_FORMAT" }}
+                  </span>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="col px-0 d-flex justify-content-center">
+        {% include "pagination.html" with page_obj=page_obj %}
+      </div>
+    </div>
+  </div>
 {% endblock content %}

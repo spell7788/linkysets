@@ -10,6 +10,7 @@ from django import forms
 from django.conf import settings
 from django.db.models import QuerySet
 from django.forms import BaseInlineFormSet, ValidationError, inlineformset_factory
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.translation import ugettext_lazy as _
 
 from polemicflow.common.forms import AssignUserMixin
@@ -105,6 +106,11 @@ class EntryFormsetBase(BaseInlineFormSet):
 
         return qs
 
+    def add_fields(self, form: forms.Form, index: int) -> None:
+        super().add_fields(form, index)
+        if self.can_delete:
+            form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
+
     @classmethod
     def get_default_prefix(cls) -> str:
         return "entries"
@@ -117,5 +123,5 @@ EntryFormset = inlineformset_factory(
     formset=EntryFormsetBase,
     min_num=1,
     validate_min=True,
-    extra=1,
+    extra=0,
 )

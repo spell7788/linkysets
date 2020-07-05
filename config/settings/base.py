@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "mptt",
 ]
 
@@ -105,6 +106,10 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+STATICFILES_DIRS = [
+    POLEMICFLOW_DIR / "static",
+]
+
 # fmt: off
 LOGGING = {
     "version": 1,
@@ -123,6 +128,10 @@ LOGGING = {
 }
 # fmt: on
 
+AUTHENTICATION_FORM = "polemicflow.users.forms.AuthenticationForm"
+
 DEFAULT_REQUESTS_TIMEOUT = 1.5
+
+ANONYMOUS_USER_PROXY = "polemicflow.users.models.AnonymousUserProxy"
 
 ANONYMOUS_USERNAME = _("Anonymous")

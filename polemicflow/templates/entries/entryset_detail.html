@@ -1,80 +1,163 @@
 {% extends 'base.html' %}
-{% load common_tags mptt_tags %}
+{% load i18n humanize %}
 
 {% block content %}
   {{ block.super }}
 
-  <section>
-    <h1>
-      {{ entryset }}
-    </h1>
+  <div class="jumbotron jumbotron-fluid mb-0 bg-dark text-light">
+    <div class="container">
+      <h1 class="display-3 pb-1 font-weight-bold text-center border-bottom">
+        {{ entryset }}
+      </h1>
 
-    <span>
-      Author: {% get_username entryset %}
-    </span>
+      <div class="d-flex justify-content-center">
+        <p class="lead mr-3">
+          {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
+            {{ humanized_num_entries }} entry
+            {% plural %}
+            {{ humanized_num_entries }} entries
+          {% endblocktrans %}
+        </p>
 
-    <hr>
+        <p class="lead">
+          {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
+            {{ humanized_num_replies }} reply
+            {% plural %}
+            {{ humanized_num_replies }} replies
+          {% endblocktrans %}
+        </p>
+      </div>
+    </div>
+  </div>
 
-    <ul>
+  <div class="row row-cols-1">
     {% for entry in entryset.entries.all %}
-      <li>
-        [{{ entry.get_type_display }}]
+      <div
+        class="col p-4 {% if not forloop.counter0|divisibleby:"2" %}bg-light{% endif %}"
+      >
+        <div class="row row-cols-1">
+          <div class="col d-flex justify-content-center">
+            <h4 class="my-0 mr-2">
+              <span class="badge badge-dark">
+                {{ entry.get_type_display }}
+              </span>
+            </h4>
 
-        {% if entry.origin.pk != entryset.pk and entry.in_origin %}
-          <span>
-            [reposted from
-            <a href="{{ entry.origin.get_absolute_url }}">
-              {{ entry.origin }}
-            </a>]
-          </span>
-        {% endif %}
+            {% if entry.origin.pk != entryset.pk %}
+              <h4>
+                <a
+                  href="{{ entry.origin.get_absolute_url }}"
+                  class="badge badge-primary"
+                >
+                  {% trans "Origin" %}
+                </a>
+              </h4>
+            {% endif %}
+          </div>
 
-        <form action="{% url 'entries:repost' pk=entry.pk %}" method="post">
-          {% csrf_token %}
-          <button type="submit">
-            Repost
-          </button>
-        </form>
+          <div class="col my-2 d-flex justify-content-center">
+            {% if entry.type == 0 %}
+              <div class="jumbotron py-4 mx-4 mb-0 position-relative text-center">
+                <div class="container">
+                  {% if entry.label %}
+                    <h3 class="font-weight-light">
+                      {{ entry.label }}
+                    </h3>
+                  {% endif %}
 
-        <div>
-          {{ entry.render }}
+                  <a
+                    href="{{ entry.url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-link btn-lg text-monospace stretched-link"
+                  >
+                    {{ entry.url }}
+                  </a>
+
+                </div>
+              </div>
+            {% else %}
+              {{ entry.render }}
+            {% endif %}
+          </div>
+
+          <div class="col d-flex justify-content-center">
+            <form action="{% url 'entries:repost' pk=entry.pk %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary font-weight-bold">
+                {% trans "Repost" %}
+              </button>
+            </form>
+          </div>
         </div>
-      </li>
+      </div>
     {% endfor %}
-    </ul>
-  </section>
+  </div>
 
-  <section>
-    <h3>Replies</h3>
+  <div class="jumbotron jumbotron-fluid mb-0 py-4 bg-dark text-light">
+    <div class="container">
+      <h4 class="display-4 text-center mb-3">
+        {% trans "Replies" %}
+      </h4>
 
-    {% with entryset.replies.all as replies %}
-      {% if replies %}
-        {% recursetree replies %}
-          <ul>
-            <li>
-              [{% get_username node %}] {{ node }}
-              <div>
+      {% if entryset.num_replies %}
+        {% load static mptt_tags %}
+
+        {% recursetree entryset.replies.all %}
+          <div class="media my-3">
+            <img
+              src="{% static 'img/user_light.svg' %}"
+              width="56"
+              height="56"
+              alt="user image"
+              class="rounded mr-2 align-self-start"
+            >
+
+            <div class="media-body">
+              <div class="d-flex align-items-center">
+                {% with node.get_author as author %}
+                  <a
+                    href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#{% endif %}"
+                    class="text-decoration-none mr-2"
+                  >
+                    {{ author.username }}
+                  </a>
+                {% endwith %}
+
+                <small>
+                  {{ node.created|date:"SHORT_DATETIME_FORMAT" }}
+                </small>
+              </div>
+
+              <p class="font-weight-bold my-1">{{ node.text }}</p>
+
+              <div class="d-flex">
                 <a
                   href="{% url 'replies:post' %}?entryset={{ entryset.pk }}&reply={{ node.pk }}"
+                  class="text-decoration-none"
                 >
-                  Reply
+                  {% trans "Reply" %}
                 </a>
               </div>
-            </li>
-            {% if children %}
-              <li>{{ children }}</li>
-            {% endif %}
-          </ul>
+
+              {{ children }}
+            </div>
+          </div>
         {% endrecursetree %}
       {% else %}
-        <p>No replies yet.</p>
+        <p class="lead text-center">
+          {% trans "No replies yet. Be the first to add one." %}
+        </p>
       {% endif %}
 
-      <div>
-        <a href="{% url 'replies:post' %}?entryset={{ entryset.pk }}">
-          Reply
+      <div class="d-flex justify-content-center">
+        <a
+          href="{% url 'replies:post' %}?entryset={{ entryset.pk }}"
+          class="btn btn-outline-primary btn-lg px-4 font-weight-bold"
+        >
+          {% trans "Reply" %}
         </a>
       </div>
-    {% endwith %}
-  </section>
+    </div>
+  </div>
 {% endblock content %}

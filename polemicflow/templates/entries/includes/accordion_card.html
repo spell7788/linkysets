@@ -1,0 +1,44 @@
+<div class="card">
+  <div class="card-header">
+    <h6 class="mb-0">
+    {% with entry|truncatechars:50 as entry_name %}
+      {% if entry.type != 0 %}
+        <button
+          class="btn btn-link text-decoration-none"
+          data-toggle="collapse"
+          data-target="#collapse{{ entry.pk }}"
+        >
+          <span class="badge badge-dark">
+            {{ entry.get_type_display }}
+          </span>
+
+          <span class="text-nowrap">
+            {{ entry_name }}
+          </span>
+        </button>
+      {% else %}
+        <a
+          href="{{ entry.url }}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-link text-decoration-none"
+        >
+          <span class="badge badge-dark">
+            {{ entry.get_type_display }}
+          </span>
+
+          {{ entry_name }}
+        </a>
+      {% endif %}
+    {% endwith %}
+    </h6>
+  </div>
+
+  {% if entry.type != 0 %}
+    <div id="collapse{{ entry.pk }}" class="collapse {% if forloop.first %}show{% endif %}">
+      <div class="card-body">
+        {{ entry.render }}
+      </div>
+    </div>
+  {% endif %}
+</div>

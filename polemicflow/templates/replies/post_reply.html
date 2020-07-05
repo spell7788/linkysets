@@ -1,33 +1,74 @@
-{% extends 'base.html' %}
-{% load common_tags %}
+{% extends 'hero.html' %}
+{% load i18n static %}
 
-{% block content %}
-  {{ block.super }}
-
-  <p>
-    <a href="{{ entryset.get_absolute_url }}">
-      {{ entryset }}
-    </a>
-  </p>
+{% block hero_content %}
+  <h1 class="display-4 mb-4 text-center">
+    {% blocktrans with entryset_title=entryset|stringformat:"s" entryset_url=entryset.get_absolute_url trimmed %}
+      You're replying to
+      <a href="{{ entryset_url }}" target="_blank" class="text-decoration-none">
+        {{ entryset_title }}
+      </a>
+    {% endblocktrans %}
+  </h1>
 
   {% if parent_reply %}
-  <div>
-    You were replying to a
+    <div class="media bg-light rounded p-3 mb-4">
+      <img
+        src="{% static 'img/user_dark.svg' %}"
+        width="64"
+        height="64"
+        alt="user image"
+        class="mr-2"
+      >
 
-    <p>
-      [{% get_username parent_reply %}] {{ parent_reply.text }}
-    </p>
-  </div>
+      <div class="media-body">
+        <div class="d-flex align-items-center">
+          {% with parent_reply.get_author as author %}
+            <a
+              href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#{% endif %}"
+              class="text-decoration-none mr-2"
+            >
+              {{ author.username }}
+            </a>
+          {% endwith %}
+
+          <small>
+            {{ parent_reply.created|date:"SHORT_DATETIME_FORMAT" }}
+          </small>
+        </div>
+
+        <p class="font-weight-bold my-2">{{ parent_reply.text }}</p>
+      </div>
+    </div>
   {% endif %}
 
-  <form
-    action="{{ request.path_info }}?entryset={{ entryset.pk }}&reply={{ parent_reply.pk }}"
-    method="post"
-  >
+  <form action="{{ request.path_info }}?entryset={{ entryset.pk }}&reply={{ parent_reply.pk }}" method="post" novalidate>
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">
-      Reply
-    </button>
+
+    <div class="form-group">
+      <textarea
+        name="{{ form.text.html_name }}"
+        id="{{ form.text.id_for_label }}"
+        cols="20"
+        rows="3"
+        {% if field.field.required %}required{% endif %}
+        class="form-control {% if form.text.errors %}is-invalid{% endif %}"
+        placeholder="{{ form.text.help_text }}"
+      ></textarea>
+
+      {% if form.text.errors  %}
+        {% for error in form.text.errors %}
+          <div class="invalid-feedback">
+            {{ error|escape }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <button type="submit" class="btn btn-primary btn-lg px-4">
+        {% trans "Reply" %}
+      </button>
+    </div>
   </form>
-{% endblock content %}
+{% endblock hero_content %}

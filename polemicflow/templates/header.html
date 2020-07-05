@@ -1,0 +1,79 @@
+{% load i18n %}
+
+<header>
+  <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <a href="{% url 'entries:home' %}" class="navbar-brand display-1">
+      🧶 Changeme
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <small class="navbar-text">
+        {% trans "Create some content sets" %}
+      </small>
+
+      <div class="ml-auto">
+        {% if user.is_authenticated %}
+          <small class="navbar-text">
+            {% trans "You are logged in as" %}
+          </small>
+
+          <a href="#" class="text-decoration-none mr-2">
+            {{ user.username }}
+          </a>
+
+          <a href="{% url 'users:logout' %}" class="btn btn-outline-danger">
+            {% trans "Logout" %}
+          </a>
+        {% else %}
+          <form
+            action="{% url 'users:login' %}"
+            method="post"
+            class="inline-form text-light d-xs-block d-sm-none"
+          >
+            {% csrf_token %}
+            {% include "users/includes/login_form.html" with form=login_form %}
+
+            <button type="submit" class="btn btn-outline-primary">
+              {% trans "Login" %}
+            </button>
+
+            <a href="{% url 'users:register' %}" class="btn btn-outline-success">
+              {% trans "Register" %}
+            </a>
+          </form>
+
+          <div class="d-none d-sm-flex">
+            <div class="dropdown mr-2">
+              <button
+                class="btn btn-outline-primary dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                {% trans "Login" %}
+              </button>
+
+              <div class="dropdown-menu dropdown-menu-right" style="width: 13rem;">
+                <form action="{% url 'users:login' %}" method="post" class="px-4 py-2">
+                  {% csrf_token %}
+                  {% include "users/includes/login_form.html" with form=login_form %}
+
+                  <button type="submit" class="btn btn-primary">
+                    {% trans "Login" %}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <a href="{% url 'users:register' %}" class="btn btn-outline-success">
+              {% trans "Register" %}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+</header>

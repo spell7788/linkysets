@@ -1,0 +1,59 @@
+{% load i18n %}
+
+<div
+  data-entry-id="{% if forloop %}{{ forloop.counter0 }}{% else %}__prefix__{% endif %}"
+  class="
+    entry-form
+    {% if forloop.first %}mb-4{% endif %}
+  "
+>
+  {% for field in form.hidden_fields %}
+    {{ field }}
+  {% endfor %}
+
+  {% for field in form.visible_fields %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">
+        {{ field.label }}
+      </label>
+
+      <input
+        type="text"
+        name="{{ field.html_name }}"
+        value="{{ field.value|default_if_none:"" }}"
+        id="{{ field.id_for_label }}"
+        {% if field.field.required %}required{% endif %}
+        class="
+          form-control
+          {% if field.errors %}is-invalid{% endif %}
+        "
+      >
+
+      {% if field.errors  %}
+        {% for error in field.errors %}
+          <div class="invalid-feedback">
+            {{ error|escape }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if field.help_text %}
+        <small class="form-text text-muted">
+          {{ field.help_text }}
+        </small>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  {% if not forloop.first %}
+    <div class="d-flex justify-content-center">
+      <button
+        type="button"
+        data-entry-id="{% if forloop %}{{ forloop.counter0 }}{% else %}__prefix__{% endif %}"
+        class="close remove-entry"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  {% endif %}
+</div>

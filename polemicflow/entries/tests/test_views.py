@@ -142,16 +142,19 @@ class EntrySetDetailTests(TestCase):
         )
         self.assertContains(response, str(self.entryset))
 
-    def test_contains_related_rendered_entries(self):
+    def test_contains_rendered_entries(self):
         response = self.client.get(
             reverse("entries:detail", kwargs={"pk": self.entryset.pk})
         )
-        entries = self.entryset.entries.all()
-        self.assertGreater(len(entries), 0)
         with translation.override(None, deactivate=True):
-            for entry in entries:
+            for entry in self.entryset.entries.all():
                 with self.subTest(entry=entry):
-                    self.assertContains(response, entry.render())
+                    if entry.type != Entry.EntryType.URL:
+                        text = entry.render()
+                    else:
+                        text = entry.url
+
+                    self.assertContains(response, text)
 
 
 class UpdateEntrysetTests(EntryFormsetDataMixin, TestCase):

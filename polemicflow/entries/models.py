@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import OrderedDict
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -10,29 +10,17 @@ from django.shortcuts import reverse  # type: ignore
 from django.utils.translation import ugettext_lazy as _
 
 from polemicflow.common.models import AuthoredModel, TimestampedModel
-from polemicflow.common.templatetags.common_tags import get_username
 
 from . import behavior
 from .behavior import EntryTypeBehavior
-
-if TYPE_CHECKING:
-    EntrySetManagerBase = models.Manager["EntrySet"]
-else:
-    EntrySetManagerBase = models.Manager
+from .managers import EntrySetManager, EntrySetQuerySet
 
 logger = logging.getLogger(__name__)
 
 
-class EntrySetManager(EntrySetManagerBase):
-    def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.prefetch_related("entries")
-        return qs
-
-
 class EntrySet(TimestampedModel, AuthoredModel):
     name = models.CharField(
-        _("name"), max_length=50, blank=True, help_text=_("Entry set name (optional).")
+        _("name"), max_length=50, blank=True, help_text=_("Set name (optional).")
     )
     entries = models.ManyToManyField(
         "Entry",
@@ -41,7 +29,7 @@ class EntrySet(TimestampedModel, AuthoredModel):
         help_text=_("Entries that this set contains."),
     )
 
-    objects = EntrySetManager()
+    objects = EntrySetManager.from_queryset(EntrySetQuerySet)()
 
     class Meta:
         verbose_name = _("entry set")
@@ -51,7 +39,8 @@ class EntrySet(TimestampedModel, AuthoredModel):
         if self.name:
             return self.name
 
-        return _("%(username)s's set") % {"username": get_username(self)}
+        author = self.get_author()
+        return _("%(username)s's set") % {"username": author.username}
 
     def get_absolute_url(self) -> str:
         return reverse("entries:detail", kwargs={"pk": self.pk})
@@ -109,7 +98,7 @@ class Entry(models.Model):
         verbose_name_plural = _("entries")
 
     def __str__(self):
-        return f"({self.get_type_display()}) {self.label or self.url}"
+        return self.label or self.url
 
     def delete(self, *args, **kwargs):
         sets_count = self.sets.count()
