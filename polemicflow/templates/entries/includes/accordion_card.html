@@ -6,7 +6,7 @@
         <button
           class="btn btn-link text-decoration-none"
           data-toggle="collapse"
-          data-target="#collapse{{ entry.pk }}"
+          data-target="#collapse-{{ forloop.counter0 }}-{{ entry.pk }}"
         >
           <span class="badge badge-dark">
             {{ entry.get_type_display }}
@@ -35,7 +35,10 @@
   </div>
 
   {% if entry.type != 0 %}
-    <div id="collapse{{ entry.pk }}" class="collapse {% if forloop.first %}show{% endif %}">
+    <div
+      id="collapse-{{ forloop.counter0 }}-{{ entry.pk }}"
+      class="collapse {% if forloop.first %}show{% endif %}"
+    >
       <div class="card-body">
         {{ entry.render }}
       </div>
