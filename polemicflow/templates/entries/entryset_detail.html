@@ -44,7 +44,7 @@
             </h4>
 
             {% if entry.origin.pk != entryset.pk %}
-              <h4>
+              <h4 class="mr-2">
                 <a
                   href="{{ entry.origin.get_absolute_url }}"
                   class="badge badge-primary"
@@ -53,6 +53,12 @@
                 </a>
               </h4>
             {% endif %}
+
+            <h4>
+              <span class="badge badge-info">
+                🔗 {{ entry.num_of_sets }}
+              </span>
+            </h4>
           </div>
 
           <div class="col my-2 d-flex justify-content-center">
