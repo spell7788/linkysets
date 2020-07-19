@@ -43,12 +43,12 @@
             {{ user.username }}
           </a>
 
-          <a href="{% url 'users:logout' %}" class="btn btn-outline-danger">
+          <a href="{% url 'logout' %}" class="btn btn-outline-danger">
             {% trans "Logout" %}
           </a>
         {% else %}
           <form
-            action="{% url 'users:login' %}"
+            action="{% url 'login' %}"
             method="post"
             class="inline-form text-light d-xs-block d-sm-none"
           >
@@ -59,7 +59,7 @@
               {% trans "Login" %}
             </button>
 
-            <a href="{% url 'users:register' %}" class="btn btn-outline-success">
+            <a href="{% url 'register' %}" class="btn btn-outline-success">
               {% trans "Register" %}
             </a>
           </form>
@@ -76,7 +76,7 @@
               </button>
 
               <div class="dropdown-menu dropdown-menu-right" style="width: 13rem;">
-                <form action="{% url 'users:login' %}" method="post" class="px-4 py-2">
+                <form action="{% url 'login' %}" method="post" class="px-4 py-2">
                   {% csrf_token %}
                   {% include "users/includes/login_form.html" with form=login_form %}
 
@@ -87,7 +87,7 @@
               </div>
             </div>
 
-            <a href="{% url 'users:register' %}" class="btn btn-outline-success">
+            <a href="{% url 'register' %}" class="btn btn-outline-success">
               {% trans "Register" %}
             </a>
           </div>

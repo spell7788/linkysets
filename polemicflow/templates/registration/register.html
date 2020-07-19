@@ -4,7 +4,7 @@
 {% block hero_content %}
   {{ block.super }}
 
-  <form action="{% url 'users:register' %}" method="post" novalidate>
+  <form action="{% url 'register' %}" method="post" novalidate>
     {% csrf_token %}
 
     {% for field in form.visible_fields %}

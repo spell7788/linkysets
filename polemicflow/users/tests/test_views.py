@@ -19,21 +19,21 @@ class RegisterViewTests(TestCase):
         }
 
     def test_correctly_resolves_view(self):
-        response = self.client.get(reverse("users:register"))
+        response = self.client.get(reverse("register"))
         self.assertEqual(
             response.resolver_match.func.__name__, views.RegisterView.as_view().__name__
         )
 
     def test_get_returns_correnct_status_code(self):
-        response = self.client.get(reverse("users:register"))
+        response = self.client.get(reverse("register"))
         self.assertEqual(response.status_code, 200)
 
     def test_uses_correct_template(self):
-        response = self.client.get(reverse("users:register"))
+        response = self.client.get(reverse("register"))
         self.assertTemplateUsed(response, "registration/register.html")
 
     def test_registers_user_with_correct_data(self):
-        self.client.post(reverse("users:register"), self.data)
+        self.client.post(reverse("register"), self.data)
         User = get_user_model()
         try:
             User.objects.get(username=self.username)
@@ -43,7 +43,7 @@ class RegisterViewTests(TestCase):
     def test_raises_error_with_incorrect_data(self):
         incorrect_password = fake.password(length=4)
         self.client.post(
-            reverse("users:register"),
+            reverse("register"),
             {
                 "username": self.username,
                 "password1": incorrect_password,
@@ -55,5 +55,5 @@ class RegisterViewTests(TestCase):
             User.objects.get(username=self.username)
 
     def test_redirects_to_home_page_after_registration(self):
-        response = self.client.post(reverse("users:register"), self.data, follow=True)
+        response = self.client.post(reverse("register"), self.data, follow=True)
         self.assertRedirects(response, reverse("entries:home"))

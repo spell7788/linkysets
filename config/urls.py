@@ -14,9 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
+from django.contrib.auth import views as django_auth_views
 from django.urls import include, path
 
-urlpatterns = [
+from polemicflow.users import views as auth_views
+
+auth_urlpatterns = [
+    path("login/", auth_views.LoginView.as_view(), name="login",),
+    path("logout/", django_auth_views.LogoutView.as_view(), name="logout"),
+    path("register/", auth_views.RegisterView.as_view(), name="register"),
+]
+
+urlpatterns = auth_urlpatterns + [
     path("", include("polemicflow.entries.urls", namespace="entries")),
     path("replies/", include("polemicflow.replies.urls", namespace="replies")),
     path("users/", include("polemicflow.users.urls", namespace="users")),
