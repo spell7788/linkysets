@@ -6,15 +6,13 @@ from django.apps import apps
 from django.db.models import Count, Manager, OuterRef, Prefetch, QuerySet, Subquery
 
 if TYPE_CHECKING:
-    from .models import EntrySet, Entry
+    from .models import EntrySet
 
     EntrySetQuerySetBase = QuerySet[EntrySet]
     EntrySetManagerBase = Manager[EntrySet]
-    EntryManagerBase = Manager[Entry]
 else:
     EntrySetQuerySetBase = QuerySet
     EntrySetManagerBase = Manager
-    EntryManagerBase = Manager
 
 
 class EntrySetQuerySet(EntrySetQuerySetBase):
