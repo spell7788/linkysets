@@ -40,6 +40,71 @@ class HomeTests(TestCase):
         self.assertContains(response, str(self.entryset))
 
 
+class SearchTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.entry = entry_recipe.make(_fill_optional=True)
+        cls.entryset = entryset_recipe.make(entries=[cls.entry], _fill_optional=True)
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(reverse("entries:search"))
+        self.assertEqual(
+            response.resolver_match.func.__name__, views.SearchView.as_view().__name__
+        )
+
+    def test_get_returns_ok_status_code(self):
+        response = self.client.get(reverse("entries:search"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_uses_correct_template(self):
+        response = self.client.get(reverse("entries:search"))
+        self.assertTemplateUsed(response, "entries/search.html")
+
+    def test_gets_empty_queryset_if_invalid_form(self):
+        response = self.client.get(reverse("entries:search"))
+        self.assertEqual(response.context["entryset_list"].count(), 0)
+
+    def test_finds_entryset_by_name_slice(self):
+        name = self.entryset.name
+        term = name[: len(name) // 2]
+        response = self.client.get(reverse("entries:search"), {"term": term})
+        self.assertQuerysetEqual(
+            response.context["entryset_list"],
+            [self.entryset.pk],
+            transform=lambda es: es.pk,
+        )
+
+    def test_finds_entryset_by_author_username_slice(self):
+        username = self.entryset.get_author().username
+        term = username[: len(username) // 2]
+        response = self.client.get(reverse("entries:search"), {"term": term})
+        self.assertQuerysetEqual(
+            response.context["entryset_list"],
+            [self.entryset.pk],
+            transform=lambda es: es.pk,
+        )
+
+    def test_finds_entryset_by_entry_label_slice(self):
+        label = self.entryset.entries.first().label
+        term = label[: len(label) // 2]
+        response = self.client.get(reverse("entries:search"), {"term": term})
+        self.assertQuerysetEqual(
+            response.context["entryset_list"],
+            [self.entryset.pk],
+            transform=lambda es: es.pk,
+        )
+
+    def test_finds_entryset_by_entry_url_slice(self):
+        url = self.entryset.entries.first().url
+        term = url[: len(url) // 2]
+        response = self.client.get(reverse("entries:search"), {"term": term})
+        self.assertQuerysetEqual(
+            response.context["entryset_list"],
+            [self.entryset.pk],
+            transform=lambda es: es.pk,
+        )
+
+
 class CreateEntrySetTests(EntryFormsetDataMixin, TestCase):
     @classmethod
     def setUpTestData(cls):

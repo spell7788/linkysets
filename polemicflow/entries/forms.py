@@ -13,7 +13,7 @@ from django.forms import BaseInlineFormSet, ValidationError, inlineformset_facto
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.translation import ugettext_lazy as _
 
-from polemicflow.common.forms import AssignUserMixin
+from polemicflow.common.forms import AssignUserMixin, UniqueAutoIdMixin
 
 from .models import Entry, EntrySet
 
@@ -125,3 +125,7 @@ EntryFormset = inlineformset_factory(
     validate_min=True,
     extra=0,
 )
+
+
+class SearchForm(UniqueAutoIdMixin, forms.Form):
+    term = forms.CharField(max_length=100, label=_("Term"), help_text=_("Search term"))

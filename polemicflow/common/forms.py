@@ -1,6 +1,7 @@
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar, Union
 
 from django.db.models import Model
+from django.utils.crypto import get_random_string
 
 I = TypeVar("I", bound=Model)  # noqa: E741
 
@@ -26,3 +27,17 @@ class AssignUserMixin(Generic[I]):
             setattr(self.instance, self.user_field_name, self.user)
 
         return super().save(commit)  # type: ignore
+
+
+class UniqueAutoIdMixin:
+    _auto_id: str
+
+    @property
+    def auto_id(self) -> str:
+        id_ = self._auto_id
+        unique_suffix = get_random_string(6)
+        return f"{id_}_{unique_suffix}"
+
+    @auto_id.setter
+    def auto_id(self, auto_id: Union[bool, str]) -> None:
+        self._auto_id = auto_id

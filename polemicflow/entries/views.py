@@ -1,15 +1,20 @@
+# flake8: noqa: W503
+from __future__ import annotations
+
 import logging
 from typing import Any
 
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
-from .forms import EntryFormset, EntrySetForm
+from .forms import EntryFormset, EntrySetForm, SearchForm
+from .managers import EntrySetQuerySet
 from .models import Entry, EntrySet
 
 logger = logging.getLogger(__name__)
@@ -20,6 +25,37 @@ class HomeView(ListView):
     template_name = "entries/home.html"
     ordering = "created"
     paginate_by = 10
+
+
+class SearchView(ListView):
+    template_name = "entries/search.html"
+    paginate_by = 10
+
+    form: SearchForm
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.form = SearchForm(request.GET or None, initial=request.GET)
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form
+        return context
+
+    def get_queryset(self) -> EntrySetQuerySet[EntrySet]:
+        if not self.form.is_valid():
+            return EntrySet.objects.none()
+
+        term = self.form.cleaned_data.get("term")
+        qs = EntrySet.objects.all().num_entries().num_replies()
+        qs = qs.filter(
+            Q(name__unaccent__lower__trigram_similar=term)
+            | Q(author__username__icontains=term)
+            | Q(entries__label__unaccent__lower__trigram_similar=term)
+            | Q(entries__url__icontains=term)
+        )
+        qs = qs.order_by("created").distinct()
+        return qs
 
 
 def create_entryset_view(request: HttpRequest) -> HttpResponse:

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.postgres",
     "mptt",
 ]
 
@@ -69,8 +70,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "users.context_processors.login",
+                "polemicflow.users.context_processors.login",
+                "polemicflow.entries.context_processors.search",
             ],
+            "builtins": ["polemicflow.common.templatetags.common_tags"],
         },
     },
 ]

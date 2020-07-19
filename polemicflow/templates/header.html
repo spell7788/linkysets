@@ -10,9 +10,28 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <small class="navbar-text">
-        {% trans "Create some content sets" %}
-      </small>
+      <form action="{% url 'entries:search' %}" method="get" class="form-inline ml-4">
+        <div class="input-group">
+          {% with search_form.term as field %}
+            <input
+              type="search"
+              name="{{ field.html_name }}"
+              placeholder="{{ field.help_text }}"
+              id="{{ field.id_for_label }}"
+              {% if field.field.max_length %}
+                max-length="{{ field.field.max_length }}"
+              {% endif %}
+              class="form-control"
+            >
+          {% endwith %}
+
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-outline-primary">
+              {% trans "Search" %}
+            </button>
+          </div>
+        </div>
+      </form>
 
       <div class="ml-auto">
         {% if user.is_authenticated %}

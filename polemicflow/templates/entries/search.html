@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block content %}
+  {{ block.super }}
+
+  <div class="container mt-4">
+    <div class="row row-cols-1">
+      <div class="col px-0">
+        <h4 class="display-4 mb-4 text-center">
+          {% trans "Search for sets" %}
+        </h4>
+      </div>
+
+      <div class="col d-flex justify-content-center">
+        <form action="{{ request.path_info }}" method="get" class="form-inline">
+          <div class="input-group">
+            <input
+              type="search"
+              name="{{ form.term.html_name }}"
+              placeholder="{{ form.term.help_text }}"
+              id="{{ form.term.id_for_label }}"
+              {% if form.term.field.max_length %}
+                max-length="{{ form.term.field.max_length }}"
+              {% endif %}
+              value="{{ form.term.value|default:"" }}"
+              class="form-control form-control-lg"
+            >
+
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-primary font-weight-bold">
+                {% trans "Search" %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {% if page_obj.paginator.count %}
+        <div class="col d-flex justify-content-end">
+          <p class="lead mt-2 mb-0">
+            {% blocktrans with entryset_count=page_obj.paginator.count trimmed %}
+              Found {{ entryset_count }} sets
+            {% endblocktrans %}
+          </p>
+        </div>
+
+        <div class="col px-0">
+          <ul class="list-unstyled">
+            {% for entryset in page_obj %}
+              <li id="set{{ entryset.pk }}" class="media shadow-sm p-4 ml-2 mb-4">
+                <div class="media-body">
+                  <a href="{{ entryset.get_absolute_url }}" class="h3 text-decoration-none">
+                    {{ entryset }}
+                  </a>
+
+                  <hr>
+
+                  <div class="accordion">
+                    {% for entry in entryset.entries.all %}
+                      {% include "entries/includes/accordion_card.html" %}
+                    {% endfor %}
+                  </div>
+
+                  <hr>
+
+                  <div class="d-flex justify-content-between align-items-center">
+                    {% with entryset.get_author as author %}
+                      <a
+                        href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#set{{ entryset.pk }}{% endif %}"
+                      >
+                        {{ author.username }}
+                      </a>
+                    {% endwith %}
+
+                    <div>
+                      <span class="text-muted mr-1">
+                        {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
+                          {{ humanized_num_entries }} entry
+                          {% plural %}
+                          {{ humanized_num_entries }} entries
+                        {% endblocktrans %}
+                      </span>
+
+                      <span class="text-muted ml-1">
+                        {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
+                          {{ humanized_num_replies }} reply
+                          {% plural %}
+                          {{ humanized_num_replies }} replies
+                        {% endblocktrans %}
+                      </span>
+                    </div>
+
+                    <span class="text-muted d-none d-md-block">
+                      {{ entryset.created|date:"SHORT_DATETIME_FORMAT" }}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="col px-0 d-flex justify-content-center align-items-center">
+          {% include "pagination.html" with page_obj=page_obj %}
+        </div>
+      {% else %}
+        <div class="col d-flex justify-content-center">
+          <p class="h1 font-weight-light my-5">
+            {% trans "😞 No results found." %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock content %}
