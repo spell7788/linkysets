@@ -44,7 +44,7 @@ class UserDetailView(DetailView):
 
         entrysets_page_num = self.request.GET.get("sets_page", 1)
         context["entrysets_page"] = Paginator(
-            self.object.entryset_set.num_entries().num_replies().order_by("-created"),
+            self.object.entryset_set.order_by("-created"),
             self.entrysets_per_page,
         ).page(entrysets_page_num)
 

@@ -47,4 +47,5 @@ class EntrySetManager(EntrySetManagerBase):
         qs = super().get_queryset()
         qs = qs.select_related("author")
         qs = qs.prefetch_entries()
+        qs = qs.num_entries().num_replies()
         return qs

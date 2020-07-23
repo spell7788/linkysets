@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class HomeView(ListView):
-    queryset = EntrySet.objects.num_entries().num_replies()
+    queryset = EntrySet.objects.all()
     template_name = "entries/home.html"
     ordering = "created"
     paginate_by = 10
@@ -47,7 +47,7 @@ class SearchView(ListView):
             return EntrySet.objects.none()
 
         term = self.form.cleaned_data.get("term")
-        qs = EntrySet.objects.all().num_entries().num_replies()
+        qs = EntrySet.objects.all()
         qs = qs.filter(
             Q(name__unaccent__lower__trigram_similar=term)
             | Q(author__username__icontains=term)
@@ -131,7 +131,7 @@ def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
 
 
 class EntrySetDetailView(DetailView):
-    queryset = EntrySet.objects.num_entries().num_replies().prefetch_replies()
+    queryset = EntrySet.objects.prefetch_replies()
     template_name = "entries/entryset_detail.html"
 
 
