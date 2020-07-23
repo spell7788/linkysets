@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static i18n humanize %}
+
+{% block content %}
+  {{ block.super }}
+
+  <div class="container my-4">
+    <div class="row row-cols-1">
+      <div class="col d-flex justify-content-center">
+        <div class="media">
+          <img
+            src="{% static 'img/user_dark.svg' %}"
+            width="125"
+            height="125"
+            alt="user image"
+            class="mr-5"
+          >
+
+          <div class="media-body">
+            <h2 class="font-weight-bold text-primary">
+              {{ user.username }}
+            </h2>
+
+            <p class="lead">
+              {% blocktrans with date_joined=user.date_joined|date:"SHORT_DATE_FORMAT" trimmed %}
+                Joined at {{ date_joined }}
+              {% endblocktrans %}
+            </p>
+
+            <span class="badge badge-dark">
+              {% blocktrans count num_sets=user.num_sets trimmed %}
+                {{ num_sets }} set
+              {% plural %}
+                {{ num_sets }} sets
+              {% endblocktrans %}
+            </span>
+
+            <span class="badge badge-dark">
+              {% blocktrans count num_replies=user.num_replies trimmed %}
+                {{ num_replies }} reply
+              {% plural %}
+                {{ num_replies }} replies
+              {% endblocktrans %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col mt-3 d-flex justify-content-center">
+        <ul class="nav nav-pills" role="tablist">
+          <li class="nav-item">
+            <a
+              href="#sets-tab"
+              id="sets"
+              class="nav-link active font-weight-bold"
+              data-toggle="tab"
+              role="tab"
+            >
+              {% trans "Sets" %}
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a
+              href="#replies-tab"
+              id="replies"
+              class="nav-link font-weight-bold"
+              data-toggle="tab"
+              role="tab"
+            >
+              {% trans "Replies" %}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <div class="tab-content">
+          <div id="sets-tab" class="tab-pane active" role="tabpanel">
+            {% if entrysets_page.paginator.count > 0 %}
+              <ul class="list-unstyled">
+                {% for entryset in entrysets_page %}
+                  {% include "entries/includes/entryset_item.html" with entryset=entryset %}
+                {% endfor %}
+              </ul>
+
+              <div class="d-flex justify-content-center">
+                {% include "pagination.html" with page_obj=entrysets_page prefix="sets" %}
+              </div>
+            {% else %}
+              <div class="jumbotron bg-white d-flex justify-content-center">
+                <p class="display-4">
+                  {% trans "No sets yet." %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+
+          <div id="replies-tab" class="tab-pane" role="tabpanel">
+            {% if replies_page.paginator.count > 0 %}
+              <ul class="list-group list-group-flush">
+                {% for reply in replies_page %}
+                  {% include "users/includes/user_detail_reply.html" with reply=reply %}
+                {% endfor %}
+              </ul>
+
+              <div class="d-flex justify-content-center">
+                {% include "pagination.html" with page_obj=replies_page prefix="replies" %}
+              </div>
+            {% else %}
+              <div class="jumbotron bg-white d-flex justify-content-center">
+                <p class="display-4">
+                  {% trans "No replies yet." %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block js %}
+  {{ block.super }}
+  <script src="{% static 'js/user_detail.js' %}"></script>
+{% endblock js %}

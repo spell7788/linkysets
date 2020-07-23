@@ -1,0 +1,45 @@
+{% load static i18n %}
+
+<li class="list-group-item">
+  <p class="lead mb-2">
+    {% blocktrans with reply_pk=reply.pk entryset_name=reply.entryset|stringformat:"s" entryset_url=reply.entryset.get_absolute_url trimmed %}
+      Reply to
+      <a
+        href="{{ entryset_url }}#reply-{{ reply_pk }}"
+        class="text-decoration-none"
+      >
+        {{ entryset_name }}
+      </a>
+      set
+    {% endblocktrans %}
+  </p>
+
+  <div class="media p-2 bg-light rounded">
+    <img
+      src="{% static 'img/user_dark.svg' %}"
+      width="56"
+      height="56"
+      alt="user image"
+      class="rounded mr-2 align-self-start"
+    >
+
+    <div class="media-body">
+      <div class="d-flex align-items-center">
+        {% with reply.get_author as author %}
+          <a
+            href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#{% endif %}"
+            class="text-decoration-none mr-2"
+          >
+            {{ author.username }}
+          </a>
+        {% endwith %}
+
+        <small>
+          {{ reply.created|date:"SHORT_DATETIME_FORMAT" }}
+        </small>
+      </div>
+
+      <p class="font-weight-bold my-1">{{ reply.text }}</p>
+    </div>
+  </div>
+</li>

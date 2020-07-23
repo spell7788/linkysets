@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n humanize %}
+{% load i18n humanize common_tags %}
 
 {% block content %}
   {{ block.super }}
@@ -34,55 +34,7 @@
       <div class="col px-0">
         <ul class="list-unstyled">
           {% for entryset in page_obj %}
-            <li id="set{{ entryset.pk }}" class="media shadow-sm p-4 ml-2 mb-4">
-              <div class="media-body">
-                <a href="{{ entryset.get_absolute_url }}" class="h3 text-decoration-none">
-                  {{ entryset }}
-                </a>
-
-                <hr>
-
-                <div class="accordion">
-                  {% for entry in entryset.entries.all %}
-                    {% include "entries/includes/accordion_card.html" %}
-                  {% endfor %}
-                </div>
-
-                <hr>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  {% with entryset.get_author as author %}
-                    <a
-                      href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#set{{ entryset.pk }}{% endif %}"
-                    >
-                      {{ author.username }}
-                    </a>
-                  {% endwith %}
-
-                  <div>
-                    <span class="text-muted mr-1">
-                      {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
-                        {{ humanized_num_entries }} entry
-                        {% plural %}
-                        {{ humanized_num_entries }} entries
-                      {% endblocktrans %}
-                    </span>
-
-                    <span class="text-muted ml-1">
-                      {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
-                        {{ humanized_num_replies }} reply
-                        {% plural %}
-                        {{ humanized_num_replies }} replies
-                      {% endblocktrans %}
-                    </span>
-                  </div>
-
-                  <span class="text-muted d-none d-md-block">
-                    {{ entryset.created|date:"SHORT_DATETIME_FORMAT" }}
-                  </span>
-                </div>
-              </div>
-            </li>
+            {% include "entries/includes/entryset_item.html" with entryset=entryset %}
           {% endfor %}
         </ul>
       </div>

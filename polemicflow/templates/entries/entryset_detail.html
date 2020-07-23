@@ -110,7 +110,7 @@
         {% load static mptt_tags %}
 
         {% recursetree entryset.replies.all %}
-          <div class="media my-3">
+          <div id="reply-{{ node.pk }}" class="media my-3">
             <img
               src="{% static 'img/user_light.svg' %}"
               width="56"

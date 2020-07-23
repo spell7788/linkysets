@@ -39,7 +39,7 @@
             {% trans "You are logged in as" %}
           </small>
 
-          <a href="#" class="text-decoration-none mr-2">
+          <a href="{{ user.get_absolute_url }}" class="text-decoration-none mr-2">
             {{ user.username }}
           </a>
 

@@ -3,7 +3,7 @@
 <nav aria-label="Pagination">
   <ul class="pagination">
     {% if page_obj.has_previous %}
-      {% transform_query page=page_obj.previous_page_number as previous_page_query %}
+      {% transform_query prefix=prefix page=page_obj.previous_page_number as previous_page_query %}
 
       <li class="page-item">
         <a href="?{{ previous_page_query }}" class="page-link">
@@ -12,7 +12,7 @@
       </li>
 
       <li class="page-item {% if page_obj.number == 1 %}disabled{% endif %}">
-        <a href="?{% transform_query page=1 %}" class="page-link">
+        <a href="?{% transform_query prefix=prefix page=1 %}" class="page-link">
           1
         </a>
       </li>
@@ -33,7 +33,7 @@
     </li>
 
     {% if page_obj.has_next %}
-      {% transform_query page=page_obj.next_page_number as next_page_query %}
+      {% transform_query prefix=prefix page=page_obj.next_page_number as next_page_query %}
 
       {% if page_obj.next_page_number != page_obj.paginator.num_pages %}
         <li class="page-item">
@@ -44,7 +44,7 @@
       {% endif %}
 
       <li class="page-item">
-        <a href="?{% transform_query page=page_obj.paginator.num_pages %}" class="page-link">
+        <a href="?{% transform_query prefix=prefix page=page_obj.paginator.num_pages %}" class="page-link">
           {{ page_obj.paginator.num_pages }}
         </a>
       </li>
