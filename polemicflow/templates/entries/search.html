@@ -66,11 +66,15 @@
 
                   <div class="d-flex justify-content-between align-items-center">
                     {% with entryset.get_author as author %}
-                      <a
-                        href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#set{{ entryset.pk }}{% endif %}"
-                      >
-                        {{ author.username }}
-                      </a>
+                      {% if author.is_authenticated %}
+                        <a href="{{ author.get_absolute_url }}">
+                          {{ author.username }}
+                        </a>
+                      {% else %}
+                        <span>
+                          {{ author.username }}
+                        </span>
+                      {% endif %}
                     {% endwith %}
 
                     <div>

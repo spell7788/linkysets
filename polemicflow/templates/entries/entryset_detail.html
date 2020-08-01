@@ -137,12 +137,18 @@
             <div class="media-body">
               <div class="d-flex align-items-center">
                 {% with node.get_author as author %}
-                  <a
-                    href="{% if not author.is_anonymous %}{{ author.get_absolute_url }}{% else %}#{% endif %}"
-                    class="text-decoration-none mr-2"
-                  >
-                    {{ author.username }}
-                  </a>
+                  {% if author.is_authenticated %}
+                    <a
+                      href="{{ author.get_absolute_url }}"
+                      class="text-decoration-none mr-2"
+                    >
+                      {{ author.username }}
+                    </a>
+                  {% else %}
+                    <span class="mr-2">
+                      {{ author.username }}
+                    </span>
+                  {% endif %}
                 {% endwith %}
 
                 <small>
