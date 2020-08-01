@@ -10,22 +10,37 @@
         {{ entryset }}
       </h1>
 
-      <div class="d-flex justify-content-center">
-        <p class="lead mr-3">
-          {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
-            {{ humanized_num_entries }} entry
-            {% plural %}
-            {{ humanized_num_entries }} entries
-          {% endblocktrans %}
-        </p>
+      <div class="row row-cols-1">
+        <div class="col d-flex justify-content-center">
+          <p class="lead mb-0">
+            {% with entryset.get_author as author %}
+              {% blocktrans with author_name=author.username author_url=author.get_absolute_url trimmed %}
+                by
+                <a href="{{ author_url }}" class="text-decoration-none">
+                  {{ author_name }}
+                </a>
+              {% endblocktrans %}
+            {% endwith %}
+          </p>
+        </div>
 
-        <p class="lead">
-          {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
-            {{ humanized_num_replies }} reply
-            {% plural %}
-            {{ humanized_num_replies }} replies
-          {% endblocktrans %}
-        </p>
+        <div class="col d-flex justify-content-center">
+          <p class="lead mb-0 mr-3">
+            {% blocktrans with humanized_num_entries=entryset.num_entries|apnumber count num_entries=entryset.num_entries trimmed %}
+              {{ humanized_num_entries }} entry
+              {% plural %}
+              {{ humanized_num_entries }} entries
+            {% endblocktrans %}
+          </p>
+
+          <p class="lead mb-0">
+            {% blocktrans with humanized_num_replies=entryset.num_replies|apnumber count num_replies=entryset.num_replies trimmed %}
+              {{ humanized_num_replies }} reply
+              {% plural %}
+              {{ humanized_num_replies }} replies
+            {% endblocktrans %}
+          </p>
+        </div>
       </div>
     </div>
   </div>

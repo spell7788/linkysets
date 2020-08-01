@@ -18,3 +18,6 @@ class AnonymousUserProxy(Proxy):
     @property
     def username(self) -> str:
         return settings.ANONYMOUS_USERNAME
+
+    def get_absolute_url(self) -> str:
+        return "#"
