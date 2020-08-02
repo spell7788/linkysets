@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <header>
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark py-3">
     <a href="{% url 'entries:home' %}" class="navbar-brand display-1">
       🧶 Changeme
     </a>
@@ -10,7 +10,11 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <form action="{% url 'entries:search' %}" method="get" class="form-inline ml-4">
+      <form
+        action="{% url 'entries:search' %}"
+        method="get"
+        class="form-inline ml-2 my-3 my-md-0"
+      >
         <div class="input-group">
           {% with search_form.term as field %}
             <input
@@ -33,7 +37,7 @@
         </div>
       </form>
 
-      <div class="ml-auto">
+      <div class="ml-2 ml-md-auto">
         {% if user.is_authenticated %}
           <small class="navbar-text">
             {% trans "You are logged in as" %}
@@ -50,21 +54,49 @@
           <form
             action="{% url 'login' %}"
             method="post"
-            class="inline-form text-light d-xs-block d-sm-none"
+            class="text-light d-block d-md-none"
           >
             {% csrf_token %}
-            {% include "users/includes/login_form.html" with form=login_form %}
 
-            <button type="submit" class="btn btn-outline-primary">
-              {% trans "Login" %}
-            </button>
+            {% for field in login_form.hidden_fields %}
+              {{ field }}
+            {% endfor %}
 
-            <a href="{% url 'register' %}" class="btn btn-outline-success">
-              {% trans "Register" %}
-            </a>
+            <div class="form-row">
+              {% for field in login_form.visible_fields %}
+                <div class="form-group col-12 col-sm-6 my-1">
+                  <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                  </label>
+
+                  <input
+                    type="{{ field.field.widget.input_type }}"
+                    name="{{ field.html_name }}"
+                    placeholder="{{ field.label }}"
+                    id="{{ field.id_for_label }}"
+                    autocomplete="current-password"
+                    class="form-control"
+                  >
+                </div>
+
+                {% if not forloop.last %}
+                  <div class="w-100"></div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <div class="mt-2">
+              <button type="submit" class="btn btn-outline-primary">
+                {% trans "Login" %}
+              </button>
+
+              <a href="{% url 'register' %}" class="btn btn-outline-success">
+                {% trans "Register" %}
+              </a>
+            </div>
           </form>
 
-          <div class="d-none d-sm-flex">
+          <div class="d-none d-md-flex">
             <div class="dropdown mr-2">
               <button
                 class="btn btn-outline-primary dropdown-toggle"
