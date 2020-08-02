@@ -112,11 +112,19 @@ class YtVideoTypeBehavior(EntryTypeBehavior):
 
     def get_render_context(self):
         context = super().get_render_context()
-        context = {**context, "embed_url": self.embed_url}
+        context = {
+            **context,
+            "video_id": self.video_id,
+            "embed_source": self.embed_source,
+        }
         return context
 
+    @property
+    def embed_source(self) -> str:
+        return f"https://www.youtube.com/embed/{self.video_id}"
+
     @cached_property
-    def embed_url(self) -> str:
+    def video_id(self) -> str:
         parsed_url = urlsplit(self.entry.url)
         query_string = parsed_url.query
         try:
@@ -124,10 +132,4 @@ class YtVideoTypeBehavior(EntryTypeBehavior):
         except KeyError:
             video_id = parsed_url.path.split("/")[-1]
 
-        logger.debug(
-            'YT video url: "%s". Parsed url: "%s". video id: "%s"',
-            self.entry.url,
-            parsed_url,
-            video_id,
-        )
-        return f"https://www.youtube.com/embed/{video_id}"
+        return video_id
