@@ -1,3 +1,4 @@
+# flake8: noqa: E800
 """
 Django settings for polemicflow project.
 
@@ -72,6 +73,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "polemicflow.users.context_processors.login",
                 "polemicflow.entries.context_processors.search",
+                "polemicflow.entries.context_processors.ratings",
             ],
             "builtins": ["polemicflow.common.templatetags.common_tags"],
         },
