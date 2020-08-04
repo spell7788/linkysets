@@ -138,8 +138,9 @@ class EntrySetDetailView(DetailView):
 @require_POST
 def repost_entry_view(request: HttpRequest, pk: Any) -> HttpResponse:
     if Entry.objects.filter(pk=pk).exists():
+        user = request.user if request.user.is_authenticated else None
         with transaction.atomic():
-            entryset = EntrySet.objects.create()
+            entryset = EntrySet.objects.create(author=user)
             entryset.entries.add(pk)
     else:
         raise Http404(f"No {Entry._meta.object_name} matches the given query.")

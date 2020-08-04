@@ -302,6 +302,7 @@ class EditEntrySetTests(EntryFormsetDataMixin, TestCase):
 class RepostEntryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.user = user_recipe.make()
         cls.entry = entry_recipe.make()
 
     def test_correctly_resolves_view(self):
@@ -327,3 +328,9 @@ class RepostEntryTests(TestCase):
     def test_returns_not_found_if_nonexistent_entry(self):
         response = self.client.post(reverse("entries:repost", kwargs={"pk": fake.pyint()}))
         self.assertEqual(response.status_code, 404)
+
+    def test_assigns_author_to_the_entryset(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
+        entryset = EntrySet.objects.latest("id")
+        self.assertEqual(entryset.get_author().pk, self.user.pk)
