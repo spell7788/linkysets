@@ -26,22 +26,6 @@
                 Joined at {{ date_joined }}
               {% endblocktrans %}
             </p>
-
-            <span class="badge badge-dark">
-              {% blocktrans count num_sets=user.num_sets trimmed %}
-                {{ num_sets }} set
-              {% plural %}
-                {{ num_sets }} sets
-              {% endblocktrans %}
-            </span>
-
-            <span class="badge badge-dark">
-              {% blocktrans count num_replies=user.num_replies trimmed %}
-                {{ num_replies }} reply
-              {% plural %}
-                {{ num_replies }} replies
-              {% endblocktrans %}
-            </span>
           </div>
         </div>
       </div>
@@ -57,6 +41,10 @@
               role="tab"
             >
               {% trans "Sets" %}
+
+              <span class="badge badge-pill badge-light">
+                {{ user.num_sets }}
+              </span>
             </a>
           </li>
 
@@ -69,6 +57,10 @@
               role="tab"
             >
               {% trans "Replies" %}
+
+              <span class="badge badge-pill badge-light">
+                {{ user.num_replies }}
+              </span>
             </a>
           </li>
         </ul>
