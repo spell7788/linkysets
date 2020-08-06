@@ -6,13 +6,13 @@
       <div class="col-md-8 col-xl-6">
         {{ block.super }}
 
-        {% block hero_content %}
-          {% if hero_title %}
-            <h1 class="display-4 mb-3 text-center">
-              {{ hero_title }}
-            </h1>
-          {% endif %}
-        {% endblock hero_content %}
+        {% if hero_title %}
+          <h1 class="display-4 mb-3 text-center">
+            {{ hero_title }}
+          </h1>
+        {% endif %}
+
+        {% block hero_content %}{% endblock hero_content %}
       </div>
     </div>
   </div>
