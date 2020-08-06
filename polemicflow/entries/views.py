@@ -76,8 +76,7 @@ def create_entryset_view(request: HttpRequest) -> HttpResponse:
                 entryset,
                 ", ".join(str(entry) for entry in entryset.entries.all()),
             )
-            messages.success(request, _("Set has been successfully created."))
-            return redirect("entries:home")
+            return redirect(entryset)
 
     context = {
         "form": form,
