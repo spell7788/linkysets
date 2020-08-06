@@ -2,8 +2,6 @@
 {% load i18n humanize %}
 
 {% block content %}
-  {{ block.super }}
-
   <div class="jumbotron jumbotron-fluid mb-0 bg-dark text-light">
     <div class="container">
       <h1 class="display-3 pb-1 font-weight-bold text-center border-bottom">
@@ -44,6 +42,8 @@
       </div>
     </div>
   </div>
+
+  {{ block.super }}
 
   <div class="row row-cols-1">
     {% for entry in entryset.entries.all %}

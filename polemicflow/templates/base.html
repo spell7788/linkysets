@@ -15,15 +15,24 @@
 <body>
   {% include "header.html" %}
 
-  {% block content %}
-    {% if messages %}
-      <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  {% endblock content %}
+  <main>
+    {% block content %}
+      {% if messages %}
+        <div class="container">
+          <ul class="list-unstyled my-3">
+            {% for message in messages %}
+              <li
+                class="alert {% if message.tags %}{{ message.tags }}{% endif %}"
+                role="alert"
+              >
+                {{ message }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endblock content %}
+  </main>
 
   {% include "footer.html" %}
 

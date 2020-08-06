@@ -2,8 +2,6 @@
 {% load i18n %}
 
 {% block hero_content %}
-  {{ block.super }}
-
   <form action="{% url 'register' %}" method="post" novalidate>
     {% csrf_token %}
 
