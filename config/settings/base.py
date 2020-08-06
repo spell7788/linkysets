@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import sys
 from pathlib import Path
 
+from django.contrib.messages import constants as message_constants
 from django.utils.translation import gettext_lazy as _
 from environs import Env
 
@@ -114,6 +115,14 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     POLEMICFLOW_DIR / "static",
 ]
+
+MESSAGE_TAGS = {
+    message_constants.DEBUG: "alert-secondary",
+    message_constants.INFO: "alert-info",
+    message_constants.SUCCESS: "alert-success",
+    message_constants.WARNING: "alert-warning",
+    message_constants.ERROR: "alert-danger",
+}
 
 # fmt: off
 LOGGING = {
