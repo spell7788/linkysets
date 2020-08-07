@@ -1,8 +1,6 @@
 "use strict";
 
-const jq = $.noConflict();
-
-jq(function ($) {
+$(function ($) {
   const USER_DETAIL_TAB_KEY = "user_detail_tab";
 
   $(document).on("show.bs.tab", function (ev) {

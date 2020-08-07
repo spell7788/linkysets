@@ -1,8 +1,6 @@
 "use strict";
 
-const jq = $.noConflict();
-
-jq(function ($) {
+$(function ($) {
   const $entrysetForm = $("#entryset-form");
   const formsetPrefix = "entries";
 

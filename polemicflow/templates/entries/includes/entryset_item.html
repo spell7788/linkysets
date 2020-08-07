@@ -1,10 +1,22 @@
 {% load i18n humanize %}
 
-<{{ tag|default:"li" }} id="set-{{ entryset.pk }}" class="media shadow-sm p-4 ml-2 mb-4">
+<{{ tag|default:"li" }} id="set-{{ entryset.pk }}" class="set media shadow-sm p-4 ml-2 mb-4">
   <div class="media-body">
-    <a href="{{ entryset.get_absolute_url }}" class="h3 text-decoration-none">
-      {{ entryset }}
-    </a>
+    <div class="d-flex justify-content-between">
+      <a href="{{ entryset.get_absolute_url }}" class="h3 text-decoration-none m-0">
+        {{ entryset }}
+      </a>
+
+      <div class="btn-group btn-group-sm" role="group">
+        <button class="btn btn-link collapse-open">
+          {% trans "open all" %}
+        </button>
+
+        <button class="btn btn-link collapse-close">
+          {% trans "close all" %}
+        </button>
+      </div>
+    </div>
 
     <hr>
 
