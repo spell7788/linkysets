@@ -14,7 +14,7 @@ indent_size = 4
 
 [*.py]
 line_length = 88
-known_first_party = polemicflow,config
+known_first_party = linkysets,config
 multi_line_output = 3
 default_section = THIRDPARTY
 recursive = true

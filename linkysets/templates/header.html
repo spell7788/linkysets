@@ -1,0 +1,130 @@
+{% load i18n %}
+
+<header>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark py-3">
+    <a href="{% url 'entries:home' %}" class="navbar-brand font-weight-bold border-bottom">
+      🗃 Linkysets
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <form
+        action="{% url 'entries:search' %}"
+        method="get"
+        class="form-inline ml-2 my-3 my-md-0"
+      >
+        <div class="input-group">
+          {% with search_form.term as field %}
+            <input
+              type="search"
+              name="{{ field.html_name }}"
+              placeholder="{{ field.help_text }}"
+              id="{{ field.id_for_label }}"
+              {% if field.field.max_length %}
+                max-length="{{ field.field.max_length }}"
+              {% endif %}
+              class="form-control"
+            >
+          {% endwith %}
+
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-outline-primary">
+              {% trans "Search" %}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="ml-2 ml-md-auto">
+        {% if user.is_authenticated %}
+          <small class="navbar-text">
+            {% trans "You are logged in as" %}
+          </small>
+
+          <a href="{{ user.get_absolute_url }}" class="text-decoration-none mr-2">
+            {{ user.username }}
+          </a>
+
+          <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+            {% trans "Logout" %}
+          </a>
+        {% else %}
+          <form
+            action="{% url 'login' %}"
+            method="post"
+            class="text-light d-block d-md-none"
+          >
+            {% csrf_token %}
+
+            {% for field in login_form.hidden_fields %}
+              {{ field }}
+            {% endfor %}
+
+            <div class="form-row">
+              {% for field in login_form.visible_fields %}
+                <div class="form-group col-12 col-sm-6 my-1">
+                  <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                  </label>
+
+                  <input
+                    type="{{ field.field.widget.input_type }}"
+                    name="{{ field.html_name }}"
+                    placeholder="{{ field.label }}"
+                    id="{{ field.id_for_label }}"
+                    autocomplete="current-password"
+                    class="form-control"
+                  >
+                </div>
+
+                {% if not forloop.last %}
+                  <div class="w-100"></div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <div class="mt-2">
+              <button type="submit" class="btn btn-outline-primary">
+                {% trans "Login" %}
+              </button>
+
+              <a href="{% url 'register' %}" class="btn btn-outline-success">
+                {% trans "Register" %}
+              </a>
+            </div>
+          </form>
+
+          <div class="d-none d-md-flex">
+            <div class="dropdown mr-2">
+              <button
+                class="btn btn-outline-primary dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                {% trans "Login" %}
+              </button>
+
+              <div class="dropdown-menu dropdown-menu-right" style="width: 13rem;">
+                <form action="{% url 'login' %}" method="post" class="px-4 py-2">
+                  {% csrf_token %}
+                  {% include "users/includes/login_form.html" with form=login_form %}
+
+                  <button type="submit" class="btn btn-primary">
+                    {% trans "Login" %}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <a href="{% url 'register' %}" class="btn btn-outline-success">
+              {% trans "Register" %}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+</header>

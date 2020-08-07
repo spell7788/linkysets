@@ -1,4 +1,4 @@
-"""polemicflow URL Configuration
+"""linkysets URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -16,8 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib.auth import views as django_auth_views
 from django.urls import include, path
-
-from polemicflow.users import views as auth_views
+from linkysets.users import views as auth_views
 
 auth_urlpatterns = [
     path("login/", auth_views.LoginView.as_view(), name="login",),
@@ -26,9 +25,9 @@ auth_urlpatterns = [
 ]
 
 urlpatterns = auth_urlpatterns + [
-    path("", include("polemicflow.entries.urls", namespace="entries")),
-    path("replies/", include("polemicflow.replies.urls", namespace="replies")),
-    path("users/", include("polemicflow.users.urls", namespace="users")),
+    path("", include("linkysets.entries.urls", namespace="entries")),
+    path("replies/", include("linkysets.replies.urls", namespace="replies")),
+    path("users/", include("linkysets.users.urls", namespace="users")),
 ]
 
 if settings.DEBUG:
