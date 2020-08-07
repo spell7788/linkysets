@@ -146,7 +146,10 @@ class CreateEntrySetTests(EntryFormsetDataMixin, TestCase):
     def test_redirects_after_entryset_created(self, head_mock):
         head_mock.side_effect = self.head_response
         response = self.client.post(reverse("entries:create"), self.valid_data)
-        self.assertRedirects(response, reverse("entries:home"))
+        entryset = EntrySet.objects.latest("id")
+        self.assertRedirects(
+            response, reverse("entries:detail", kwargs={"pk": entryset.pk})
+        )
 
     @patch("requests.Session.head")
     def test_creates_entryset_without_optional_name(self, head_mock):
