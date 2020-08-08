@@ -149,3 +149,7 @@ DEFAULT_REQUESTS_TIMEOUT = 1.5
 ANONYMOUS_USER_PROXY = "linkysets.users.models.AnonymousUserProxy"
 
 ANONYMOUS_USERNAME = _("Anonymous")
+
+PAGE_TITLE_SEPARATOR = "|"
+
+PAGE_TITLE_EXTENSION = _("Linkysets - create your fascinating content sets")

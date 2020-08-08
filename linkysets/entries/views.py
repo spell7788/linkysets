@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
@@ -13,23 +14,31 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
+from linkysets.common.typing import SupportsStr
+
 from .forms import EntryFormset, EntrySetForm, SearchForm
 from .managers import EntrySetQuerySet
+from .mixins import PageTitleMixin
 from .models import Entry, EntrySet
+from .utils import join_page_title
 
 logger = logging.getLogger(__name__)
 
 
-class HomeView(ListView):
+class HomeView(PageTitleMixin, ListView):
     queryset = EntrySet.objects.all()
     template_name = "entries/home.html"
     ordering = "created"
     paginate_by = 10
 
+    def get_full_title(self) -> SupportsStr:
+        return settings.PAGE_TITLE_EXTENSION
 
-class SearchView(ListView):
+
+class SearchView(PageTitleMixin, ListView):
     template_name = "entries/search.html"
     paginate_by = 10
+    page_title = _("Search")
 
     form: SearchForm
 
@@ -83,6 +92,7 @@ def create_entryset_view(request: HttpRequest) -> HttpResponse:
         "formset": formset,
         "hero_title": _("Create set"),
         "submit_text": _("Create"),
+        "page_title": join_page_title(_("Create set")),
     }
     return render(request, "entries/entryset_form.html", context)
 
@@ -125,13 +135,15 @@ def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
         "formset": formset,
         "hero_title": _("Edit set"),
         "submit_text": _("Confirm"),
+        "page_title": join_page_title(_("Edit set")),
     }
     return render(request, "entries/entryset_form.html", context)
 
 
-class EntrySetDetailView(DetailView):
+class EntrySetDetailView(PageTitleMixin, DetailView):
     queryset = EntrySet.objects.prefetch_replies()
     template_name = "entries/entryset_detail.html"
+    title_object_name = "object"
 
 
 @require_POST

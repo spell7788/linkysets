@@ -1,18 +1,21 @@
 from typing import Any, Dict, Optional, cast
 
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView
 
 from linkysets.common.views import QsObjectMeta, QuerystringObjectsMixin
+from linkysets.entries.mixins import PageTitleMixin
 from linkysets.entries.models import EntrySet
 
 from .forms import ReplyForm
 from .models import Reply
 
 
-class PostReplyView(QuerystringObjectsMixin, CreateView):
+class PostReplyView(PageTitleMixin, QuerystringObjectsMixin, CreateView):
     model = Reply
     form_class = ReplyForm
     template_name = "replies/post_reply.html"
+    page_title = _("Post reply")
 
     qs_objects_meta = [
         QsObjectMeta("entryset", EntrySet),
