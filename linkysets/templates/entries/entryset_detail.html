@@ -12,11 +12,13 @@
         <div class="col d-flex justify-content-center">
           <p class="lead mb-0">
             {% with entryset.get_author as author %}
-              {% blocktrans with author_name=author.username author_url=author.get_absolute_url trimmed %}
+              {% blocktrans with author_name=author.username author_url=author.get_absolute_url creation_date=entryset.created|date:"SHORT_DATETIME_FORMAT" trimmed %}
                 by
                 <a href="{{ author_url }}" class="text-decoration-none">
                   {{ author_name }}
                 </a>
+                at
+                {{ creation_date }}
               {% endblocktrans %}
             {% endwith %}
           </p>
