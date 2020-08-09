@@ -4,6 +4,7 @@ import logging
 from collections import OrderedDict
 from typing import cast
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import reverse  # type: ignore
@@ -40,7 +41,7 @@ class EntrySet(TimestampedModel, AuthoredModel):
             return self.name
 
         author = self.get_author()
-        return _("%(username)s's set") % {"username": author.username}
+        return _("%(username)s's nameless set") % {"username": author.username}
 
     def get_absolute_url(self) -> str:
         return reverse("entries:detail", kwargs={"pk": self.pk})
