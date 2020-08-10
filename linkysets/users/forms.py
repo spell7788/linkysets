@@ -13,7 +13,7 @@ class UserCreationForm(DjangoUserCreationForm):
         fields = ["username", "password1", "password2"]
 
 
-class AuthenticationForm(UniqueAutoIdMixin, DjangoAuthenticationForm):
+class AuthenticationForm(UniqueAutoIdMixin, DjangoAuthenticationForm):  # type: ignore
     """
     Linkysets authentication form
     """

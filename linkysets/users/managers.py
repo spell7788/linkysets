@@ -14,7 +14,7 @@ else:
 
 class UserQuerySet(BaseUserQuerySet):
     def num_entrysets(self) -> UserQuerySet:
-        return self.annotate(num_sets=Count("entryset", distinct=True))
+        return self.annotate(num_sets=Count("entryset", distinct=True))  # type: ignore
 
     def num_replies(self) -> UserQuerySet:
-        return self.annotate(num_replies=Count("reply", distinct=True))
+        return self.annotate(num_replies=Count("reply", distinct=True))  # type: ignore

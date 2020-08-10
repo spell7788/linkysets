@@ -4,7 +4,6 @@ import logging
 from collections import OrderedDict
 from typing import cast
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import reverse  # type: ignore

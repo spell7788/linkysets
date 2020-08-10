@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from django.apps import apps
 from django.db.models import Count, Manager, OuterRef, Prefetch, QuerySet, Subquery
@@ -16,13 +16,13 @@ else:
 
 
 class EntrySetQuerySet(EntrySetQuerySetBase):
-    def num_entries(self) -> EntrySetQuerySet[EntrySet]:
-        return self.annotate(num_entries=Count("entries"))
+    def num_entries(self) -> EntrySetQuerySet:
+        return self.annotate(num_entries=Count("entries"))  # type: ignore
 
-    def num_replies(self) -> EntrySetQuerySet[EntrySet]:
-        return self.annotate(num_replies=Count("replies"))
+    def num_replies(self) -> EntrySetQuerySet:
+        return self.annotate(num_replies=Count("replies"))  # type: ignore
 
-    def prefetch_entries(self) -> EntrySetQuerySet[EntrySet]:
+    def prefetch_entries(self) -> EntrySetQuerySet:
         Entry = apps.get_model("entries.Entry")
         # Annotate entry sets count in prefetch subquery
         # https://stackoverflow.com/a/44474268/10079612
@@ -35,7 +35,7 @@ class EntrySetQuerySet(EntrySetQuerySetBase):
         qs = qs.select_related("origin")
         return self.prefetch_related(Prefetch("entries", queryset=qs))
 
-    def prefetch_replies(self) -> EntrySetQuerySet[EntrySet]:
+    def prefetch_replies(self) -> EntrySetQuerySet:
         Reply = apps.get_model("replies.Reply")
         return self.prefetch_related(
             Prefetch("replies", queryset=Reply.objects.select_related("author"))
@@ -43,8 +43,9 @@ class EntrySetQuerySet(EntrySetQuerySetBase):
 
 
 class EntrySetManager(EntrySetManagerBase):
-    def get_queryset(self) -> EntrySetQuerySet[EntrySet]:
+    def get_queryset(self) -> EntrySetQuerySet:
         qs = super().get_queryset()
+        qs = cast(EntrySetQuerySet, qs)
         qs = qs.select_related("author")
         qs = qs.prefetch_entries()
         qs = qs.num_entries().num_replies()
