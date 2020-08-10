@@ -94,6 +94,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "linkysets.entries.backends.EntrySetPermissionBackend",
+]
+
 LOGIN_URL = "/users/login/"
 
 LOGIN_REDIRECT_URL = "/"

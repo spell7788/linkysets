@@ -1,5 +1,6 @@
 from typing import ClassVar, Optional
 
+from linkysets.common.mixins import ObjectPermissionMixin
 from linkysets.common.typing import SupportsStr
 
 from .utils import join_page_title
@@ -31,3 +32,7 @@ class PageTitleMixin:
             return self.page_title
 
         return str(getattr(self, self.title_object_name))
+
+
+class EntrySetPermissionMixin(ObjectPermissionMixin):
+    pass

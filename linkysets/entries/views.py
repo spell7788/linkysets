@@ -18,7 +18,7 @@ from linkysets.common.typing import SupportsStr
 
 from .forms import EntryFormset, EntrySetForm, SearchForm
 from .managers import EntrySetQuerySet
-from .mixins import PageTitleMixin
+from .mixins import EntrySetPermissionMixin, PageTitleMixin
 from .models import Entry, EntrySet
 from .utils import join_page_title
 
@@ -140,7 +140,7 @@ def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
     return render(request, "entries/entryset_form.html", context)
 
 
-class EntrySetDetailView(PageTitleMixin, DetailView):
+class EntrySetDetailView(EntrySetPermissionMixin, PageTitleMixin, DetailView):
     queryset = EntrySet.objects.prefetch_replies()
     template_name = "entries/entryset_detail.html"
     title_object_name = "object"
