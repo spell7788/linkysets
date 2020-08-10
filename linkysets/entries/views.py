@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from django.conf import settings
 from django.contrib import messages
@@ -46,12 +46,12 @@ class SearchView(PageTitleMixin, ListView):
         self.form = SearchForm(request.GET or None, initial=request.GET)
         return super().get(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["form"] = self.form
         return context
 
-    def get_queryset(self) -> EntrySetQuerySet[EntrySet]:
+    def get_queryset(self) -> EntrySetQuerySet:
         if not self.form.is_valid():
             return EntrySet.objects.none()
 

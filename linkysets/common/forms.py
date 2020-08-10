@@ -30,13 +30,15 @@ class AssignUserMixin(Generic[I]):
 
 
 class UniqueAutoIdMixin:
-    _auto_id: str
+    _auto_id: Union[bool, str]
 
     @property
-    def auto_id(self) -> str:
-        id_ = self._auto_id
+    def auto_id(self) -> Union[bool, str]:
+        if isinstance(self._auto_id, bool):
+            return self._auto_id
+
         unique_suffix = get_random_string(6)
-        return f"{id_}_{unique_suffix}"
+        return f"{self._auto_id}_{unique_suffix}"
 
     @auto_id.setter
     def auto_id(self, auto_id: Union[bool, str]) -> None:

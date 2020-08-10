@@ -5,7 +5,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from linkysets.common.models import AuthoredModel, TimestampedModel
 
 
-class Reply(TimestampedModel, AuthoredModel, MPTTModel):  # type: ignore
+class Reply(TimestampedModel, AuthoredModel, MPTTModel):
     entryset = models.ForeignKey(
         "entries.EntrySet",
         on_delete=models.CASCADE,

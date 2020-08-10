@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
-from django.shortcuts import reverse
+from django.shortcuts import reverse  # type: ignore
 
 from linkysets.common.utils import Proxy
 

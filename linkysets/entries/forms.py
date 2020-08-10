@@ -108,7 +108,7 @@ class EntryFormsetBase(BaseInlineFormSet):
 
     def add_fields(self, form: forms.Form, index: int) -> None:
         super().add_fields(form, index)
-        if self.can_delete:
+        if self.can_delete:  # type: ignore
             form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
 
     @classmethod
@@ -127,5 +127,5 @@ EntryFormset = inlineformset_factory(
 )
 
 
-class SearchForm(UniqueAutoIdMixin, forms.Form):
+class SearchForm(UniqueAutoIdMixin, forms.Form):  # type: ignore
     term = forms.CharField(max_length=100, label=_("Term"), help_text=_("Search term"))
