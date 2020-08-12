@@ -335,6 +335,9 @@ class RepostEntryTests(TestCase):
         cls.user = user_recipe.make()
         cls.entry = entry_recipe.make()
 
+    def setUp(self):
+        self.client.force_login(self.user)
+
     def test_correctly_resolves_view(self):
         response = self.client.get(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
         self.assertEqual(
@@ -345,7 +348,7 @@ class RepostEntryTests(TestCase):
         response = self.client.get(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
         self.assertEqual(response.status_code, 405)
 
-    def test_post_redirects_to_entryset_update(self):
+    def test_post_redirects_to_entryset_edit(self):
         response = self.client.post(reverse("entries:repost", kwargs={"pk": self.entry.pk}))
         entryset = EntrySet.objects.latest("id")
         self.assertRedirects(response, reverse("entries:edit", kwargs={"pk": entryset.pk}))

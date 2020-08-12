@@ -153,6 +153,7 @@ class EntrySetDetailView(EntrySetPermissionMixin, PageTitleMixin, DetailView):
 
 
 @require_POST
+@login_required
 def repost_entry_view(request: HttpRequest, pk: Any) -> HttpResponse:
     if Entry.objects.filter(pk=pk).exists():
         user = request.user if request.user.is_authenticated else None
