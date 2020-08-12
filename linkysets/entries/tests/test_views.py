@@ -329,6 +329,79 @@ class EditEntrySetTests(EntryFormsetDataMixin, TestCase):
         self.assertEqual(msg.level, messages.constants.SUCCESS)
         self.assertTrue(len(str(msg)) > 0)
 
+
+class DeleteEntrySetTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = user_recipe.make()
+        cls.other_user = user_recipe.make()
+
+    def setUp(self):
+        self.entryset = entryset_recipe.make(author=self.user, _fill_optional=True)
+        self.client.force_login(self.user)
+
+    def test_correctly_resolves_view(self):
+        response = self.client.get(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(
+            response.resolver_match.func.__name__,
+            views.EntrySetDeleteView.as_view().__name__,
+        )
+
+    def test_uses_correct_template(self):
+        response = self.client.get(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertTemplateUsed(response, "entries/entryset_delete.html")
+
+    def test_get_returns_ok_status_code_if_user_logged_in(self):
+        response = self.client.get(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_redirects_to_login_if_user_is_not_logged_in(self):
+        self.client.logout()
+        url = reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        response = self.client.get(url)
+        expected_url = f"{reverse('login')}?next={url}"
+        self.assertRedirects(response, expected_url)
+
+    def test_post_redirects_to_login_if_user_is_not_logged_in(self):
+        self.client.logout()
+        url = reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        response = self.client.post(url)
+        expected_url = f"{reverse('login')}?next={url}"
+        self.assertRedirects(response, expected_url)
+
+    def test_deletes_entryset(self):
+        self.client.post(reverse("entries:delete", kwargs={"pk": self.entryset.pk}))
+        with self.assertRaises(EntrySet.DoesNotExist):
+            EntrySet.objects.get(pk=self.entryset.pk)
+
+    def test_returns_permission_denied_if_user_is_not_author(self):
+        self.client.force_login(self.other_user)
+        response = self.client.post(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_redirects_to_home_on_successfull_deletion(self):
+        response = self.client.post(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        self.assertRedirects(response, reverse("entries:home"))
+
+    def test_adds_success_message_on_deletion(self):
+        response = self.client.post(
+            reverse("entries:delete", kwargs={"pk": self.entryset.pk})
+        )
+        msg = list(messages.get_messages(response.wsgi_request))[0]
+        self.assertEqual(msg.level, messages.constants.SUCCESS)
+        self.assertTrue(len(str(msg)) > 0)
+
+
 class RepostEntryTests(TestCase):
     @classmethod
     def setUpTestData(cls):

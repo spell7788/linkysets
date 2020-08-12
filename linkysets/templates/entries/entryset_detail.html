@@ -45,6 +45,29 @@
     </div>
   </div>
 
+  {% if object_perms.has_change_perm or object_perms.has_delete_perm %}
+    <div
+      class="container-fluid bg-secondary py-2 d-flex justify-content-center">
+      {% if object_perms.has_change_perm %}
+        <a
+          href="{% url 'entries:edit' pk=entryset.pk %}"
+          class="btn btn-info font-weight-bold mr-2"
+        >
+          {% trans "Edit" %}
+        </a>
+      {% endif %}
+
+      {% if object_perms.has_delete_perm %}
+        <a
+          href="{% url 'entries:delete' pk=entryset.pk %}"
+          class="btn btn-danger font-weight-bold"
+        >
+          {% trans "Delete" %}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
   {{ block.super }}
 
   <div class="row row-cols-1">

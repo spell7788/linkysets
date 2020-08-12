@@ -13,6 +13,7 @@ from typing import (
 )
 
 from django.apps import apps
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.http import Http404, HttpRequest, HttpResponse
@@ -86,3 +87,12 @@ class QuerystringObjectsMixin:
                 yield None, meta
             else:
                 yield obj, meta
+
+
+class ObjectPermissionRequiredMixin(PermissionRequiredMixin):
+    request: HttpRequest
+
+    def has_permission(self) -> bool:
+        perms = self.get_permission_required()
+        obj = getattr(self, "object", self.get_object())  # type: ignore
+        return self.request.user.has_perms(perms, obj)

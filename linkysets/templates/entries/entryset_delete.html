@@ -1,0 +1,35 @@
+{% extends 'hero.html' %}
+{% load i18n %}
+
+{% block hero_content %}
+  <h1 class="display-4 mb-4 text-center">
+    {% blocktrans with entryset_title=entryset|stringformat:"s" entryset_url=entryset.get_absolute_url trimmed %}
+      You're deleting the
+      <a href="{{ entryset_url }}" target="_blank" class="text-decoration-none">
+        {{ entryset_title }}
+      </a>
+      set
+    {% endblocktrans %}
+  </h1>
+
+  <div class="row row-cols-1">
+    <div class="col text-center">
+      <p class="lead">
+        {% trans "Are you sure you want to delete the set?" %}
+      </p>
+    </div>
+
+    <div class="col d-flex justify-content-center">
+      <a href="{{ entryset.get_absolute_url }}" class="btn btn-light btn-lg mr-2">
+        {% trans "Cancel" %}
+      </a>
+
+      <form action="{% url 'entries:delete' pk=entryset.pk %}" method="post" novalidate>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">
+          {% trans "Delete" %}
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock hero_content %}

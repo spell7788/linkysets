@@ -11,11 +11,13 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
+from django.views.generic import DeleteView, DetailView, ListView
 
 from linkysets.common.typing import SupportsStr
+from linkysets.common.views import ObjectPermissionRequiredMixin
 
 from .forms import EntryFormset, EntrySetForm, SearchForm
 from .managers import EntrySetQuerySet
@@ -144,6 +146,22 @@ def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
         "page_title": join_page_title(_("Edit set")),
     }
     return render(request, "entries/entryset_form.html", context)
+
+
+class EntrySetDeleteView(PageTitleMixin, ObjectPermissionRequiredMixin, DeleteView):
+    model = EntrySet
+    template_name = "entries/entryset_delete.html"
+    success_url = reverse_lazy("entries:home")
+    permission_required = ["entries.delete_entryset"]
+    page_title = _("Delete set")
+    success_message = _('"%(entryset)s" set has been succesfully deleted.')
+
+    def delete(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        response = super().delete(request, *args, **kwargs)
+        messages.success(
+            request, self.success_message % {"entryset": self.object}  # type: ignore
+        )
+        return response
 
 
 class EntrySetDetailView(EntrySetPermissionMixin, PageTitleMixin, DetailView):
