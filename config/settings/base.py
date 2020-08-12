@@ -99,7 +99,7 @@ AUTHENTICATION_BACKENDS = [
     "linkysets.entries.backends.EntrySetPermissionBackend",
 ]
 
-LOGIN_URL = "/users/login/"
+LOGIN_URL = "/login/"
 
 LOGIN_REDIRECT_URL = "/"
 

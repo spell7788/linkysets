@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.contrib import messages
 from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import translation
@@ -226,12 +227,17 @@ class EntrySetDetailTests(TestCase):
 
 
 class EditEntrySetTests(EntryFormsetDataMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = user_recipe.make()
+
     def setUp(self):
-        self.entryset = entryset_recipe.make()
+        self.entryset = entryset_recipe.make(author=self.user)
         self.valid_data = self.get_data_from_entryset(self.entryset)
         self.head_response = head_response_factory(
             get_content_type=lambda response: fake.mime_type()
         )
+        self.client.force_login(self.user)
 
     def test_correctly_resolves_view(self):
         response = self.client.get(reverse("entries:edit", kwargs={"pk": self.entryset.pk}))
@@ -301,6 +307,27 @@ class EditEntrySetTests(EntryFormsetDataMixin, TestCase):
         )
         self.assertFalse(Entry.objects.filter(pk=delete_id).exists())
 
+    def test_get_redirects_to_login_if_not_logged_in(self):
+        self.client.logout()
+        url = reverse("entries:edit", kwargs={"pk": self.entryset.pk})
+        response = self.client.get(url)
+        expected_url = f"{reverse('login')}?next={url}"
+        self.assertRedirects(response, expected_url)
+
+    def test_post_redirects_to_login_if_not_logged_in(self):
+        self.client.logout()
+        url = reverse("entries:edit", kwargs={"pk": self.entryset.pk})
+        response = self.client.post(url, self.valid_data)
+        expected_url = f"{reverse('login')}?next={url}"
+        self.assertRedirects(response, expected_url)
+
+    def test_adds_success_message_on_edit(self):
+        response = self.client.post(
+            reverse("entries:edit", kwargs={"pk": self.entryset.pk}), self.valid_data
+        )
+        msg = list(messages.get_messages(response.wsgi_request))[0]
+        self.assertEqual(msg.level, messages.constants.SUCCESS)
+        self.assertTrue(len(str(msg)) > 0)
 
 class RepostEntryTests(TestCase):
     @classmethod

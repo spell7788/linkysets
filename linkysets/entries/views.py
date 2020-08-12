@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
@@ -97,8 +98,12 @@ def create_entryset_view(request: HttpRequest) -> HttpResponse:
     return render(request, "entries/entryset_form.html", context)
 
 
+@login_required
 def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
     entryset = get_object_or_404(EntrySet, pk=pk)
+    if not request.user.has_perm("entries.change_entryset", entryset):
+        return redirect(settings.LOGIN_URL)
+
     form = EntrySetForm(request.POST or None, instance=entryset)
     formset = EntryFormset(request.POST or None, instance=entryset)
 
@@ -127,7 +132,8 @@ def edit_entryset_view(request: HttpRequest, pk: Any) -> HttpResponse:
             updated = True
 
         if updated:
-            messages.success(request, _("Set has been successfully edited."))
+            msg = _('"%(entryset)s" set has been successfully updated.')
+            messages.success(request, msg % {"entryset": entryset})
             return redirect("entries:home")
 
     context = {
