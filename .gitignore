@@ -8,8 +8,8 @@ dist/
 docs/_build/
 docs/locale/
 node_modules/
-tests/coverage_html/
-tests/.coverage
+htmlcov/
+.coverage
 build/
 tests/report/
 .vscode

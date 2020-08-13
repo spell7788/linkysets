@@ -17,6 +17,7 @@ flake8-django = "*"
 flake8-eradicate = "*"
 model-bakery = "*"
 faker = "*"
+coverage = "*"
 
 [packages]
 django = "*"
