@@ -124,14 +124,6 @@ class Entry(models.Model):
         return self._meta.get_field("type").default
 
     @property
-    def in_origin(self) -> bool:
-        entrysets_pks = (set_.pk for set_ in self.sets.all())
-        origin = cast(EntrySet, self.origin)
-        if origin.pk not in entrysets_pks:
-            return False
-        return True
-
-    @property
     def type_behavior(self) -> EntryTypeBehavior:
         type_ = cast(Entry.EntryType, self.type)
         behavior_cls = self._TYPE_BEHAVIOR_DICT[type_]
