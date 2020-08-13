@@ -61,11 +61,16 @@ class EntryForm(forms.ModelForm):
                 cleaned_data = {**cleaned_data, "url": url}
                 logger.debug('Entry url got tested to "%s"', url)
 
-                mime_type, params = cgi.parse_header(response.headers["content-type"])
-                logger.debug(
-                    '"%s" mime type is "%s". Parameters: %s', url, mime_type, params,
-                )
-                type_ = self.instance.determine_type(url, mime_type)
+                content_type = response.headers.get("content-type")
+                if content_type:
+                    mime_type, params = cgi.parse_header(content_type)
+                    logger.debug(
+                        '"%s" mime type is "%s". Parameters: %s', url, mime_type, params,
+                    )
+                    type_ = self.instance.determine_type(url, mime_type)
+                else:
+                    type_ = Entry.EntryType.URL
+
                 cleaned_data = {**cleaned_data, "type": type_}
                 logger.debug(
                     'Entry type got updated to "%s"',

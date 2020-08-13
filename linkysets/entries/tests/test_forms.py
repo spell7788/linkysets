@@ -9,7 +9,7 @@ from linkysets.users.tests.bakery_recipes import user_recipe
 from ..forms import EntryForm, EntryFormset
 from ..models import Entry
 from .bakery_recipes import entry_recipe, entryset_recipe
-from .common import EntryFormsetDataMixin, head_response_factory, get_random_youtube_url
+from .common import EntryFormsetDataMixin, get_random_youtube_url, head_response_factory
 
 fake = Faker()
 
@@ -83,6 +83,13 @@ class EntryFormTests(TestCase):
         form = EntryForm(self.valid_data)
         entry = form.save()
         self.assertEqual(entry.type, Entry.EntryType.YT_VIDEO)
+
+    @patch("requests.Session.head")
+    def test_sets_type_to_url_if_response_has_no_content_type(self, head_mock):
+        head_mock.side_effect = head_response_factory(get_content_type=None)
+        form = EntryForm(self.valid_data)
+        entry = form.save()
+        self.assertEqual(entry.type, Entry.EntryType.URL)
 
 
 class EntryFormsetTests(EntryFormsetDataMixin, TestCase):

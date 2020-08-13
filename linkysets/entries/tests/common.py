@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 import string
-from typing import TYPE_CHECKING, Any, Callable, Dict, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence
 
 from faker import Faker
 from requests import Response
@@ -15,12 +15,16 @@ if TYPE_CHECKING:
 
 
 def head_response_factory(
-    get_content_type: Callable[Response, str] = lambda response: "text/html; charset=utf-8",
+    get_content_type: Optional[
+        Callable[Response, str]
+    ] = lambda response: "text/html; charset=utf-8",
 ):
     def get_response(url: str, *args, **kwargs) -> Response:
         response = Response()
         response.url = url
-        response.headers["content-type"] = get_content_type(response)
+        if get_content_type:
+            response.headers["content-type"] = get_content_type(response)
+
         return response
 
     return get_response
