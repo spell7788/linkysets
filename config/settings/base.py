@@ -32,7 +32,6 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", subcast=str)
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
@@ -99,6 +98,8 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "linkysets.entries.backends.EntrySetPermissionBackend",
 ]
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 LOGIN_URL = "/login/"
 

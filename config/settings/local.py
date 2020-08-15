@@ -1,4 +1,4 @@
-# flake8: noqa
+# flake8: noqa: F405
 from typing import Any
 
 from .base import *
