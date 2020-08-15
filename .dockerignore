@@ -1,2 +1,7 @@
 envs
 __pycache__
+.vscode
+.git
+.mypy_cache
+.coverage
+htmlcov

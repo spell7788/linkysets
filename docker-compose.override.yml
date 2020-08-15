@@ -3,7 +3,9 @@ version: "3.7"
 services:
   web:
     build:
-      dockerfile: ./Dockerfile.dev
+      target: dev
+      args:
+        PYTHON_IMAGE_TAG: 3.8
     env_file: ./envs/local/web.env
     volumes:
       - ".:/app"
