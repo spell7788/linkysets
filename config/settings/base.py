@@ -119,7 +119,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-STATIC_ROOT = LINKYSETS_DIR / "static"
+STATIC_ROOT = LINKYSETS_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    LINKYSETS_DIR / "static",
+]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
