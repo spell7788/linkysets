@@ -183,3 +183,17 @@ class EntryFormsetTests(EntryFormsetDataMixin, TestCase):
         self.assertEqual(len(entries), 1)
         delete_obj = formset.deleted_objects[0]
         self.assertEqual(delete_obj.pk, delete_id)
+
+    @patch("requests.Session.head")
+    def test_respects_max_entries_setting(self, head_mock):
+        head_mock.side_effect = self.head_response
+        valid_data = {
+            **self.valid_data,
+            "entries-2-url": fake.url(),
+            "entries-2-label": fake.pystr(),
+            "entries-TOTAL_FORMS": "3",
+        }
+        formset = EntryFormset(valid_data, instance=self.entryset)
+        formset.max_num = 2
+        self.assertFalse(formset.is_valid())
+        self.assertEqual(len(formset.non_form_errors()), 1)

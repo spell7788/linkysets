@@ -127,7 +127,9 @@ EntryFormset = inlineformset_factory(
     form=EntryForm,
     formset=EntryFormsetBase,
     min_num=1,
+    max_num=settings.MAX_ENTRIES_PER_ENTRYSET,
     validate_min=True,
+    validate_max=True,
     extra=0,
 )
 

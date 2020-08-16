@@ -13,6 +13,16 @@
   >
     {% csrf_token %}
 
+    {% if formset.non_form_errors %}
+      <div class="non-form-errors">
+        {% for error in formset.non_form_errors %}
+          <div class="alert alert-danger" role="alert">
+            {{ error }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <div class="form-group">
       <label for="{{ form.name.id_for_label }}">
         {{ form.name.label }}
@@ -38,8 +48,6 @@
     {% for form in formset.forms %}
       {% include "entries/includes/entry_form.html" with form=form %}
     {% endfor %}
-
-    {{ formset.non_field_errors }}
 
     <div class="mb-2">
       <button type="button" id="add-entry" class="btn btn-dark btn-sm px-2">

@@ -153,6 +153,8 @@ LOGGING = {
 }
 # fmt: on
 
+MAX_ENTRIES_PER_ENTRYSET = 5
+
 AUTHENTICATION_FORM = "linkysets.users.forms.AuthenticationForm"
 
 DEFAULT_REQUESTS_TIMEOUT = 1.5
